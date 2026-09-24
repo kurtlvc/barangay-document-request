@@ -31,7 +31,7 @@ $isVerified = ($status === 'verified');
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-uppercase fw-semibold small mb-1">Total Requests</p>
-                        <h2 class="fw-bold mb-0"><?= (int)($stats['total'] ?? 0) ?></h2>
+                        <h2 class="fw-bold mb-0" data-stat="total"><?= (int)($stats['total'] ?? 0) ?></h2>
                     </div>
                     <i class="bi bi-folder2-open fs-1 opacity-50"></i>
                 </div>
@@ -42,7 +42,7 @@ $isVerified = ($status === 'verified');
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-uppercase fw-semibold small mb-1">Pending Review</p>
-                        <h2 class="fw-bold mb-0"><?= (int)($stats['pending'] ?? 0) ?></h2>
+                        <h2 class="fw-bold mb-0" data-stat="pending"><?= (int)($stats['pending'] ?? 0) ?></h2>
                     </div>
                     <i class="bi bi-clock-history fs-1 opacity-50"></i>
                 </div>
@@ -53,7 +53,7 @@ $isVerified = ($status === 'verified');
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-uppercase fw-semibold small mb-1">Ready for Release</p>
-                        <h2 class="fw-bold mb-0"><?= (int)($stats['approved'] ?? 0) ?></h2>
+                        <h2 class="fw-bold mb-0" data-stat="approved"><?= (int)($stats['approved'] ?? 0) ?></h2>
                     </div>
                     <i class="bi bi-check2-circle fs-1 opacity-50"></i>
                 </div>
@@ -64,7 +64,7 @@ $isVerified = ($status === 'verified');
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-uppercase fw-semibold small mb-1">Claimed</p>
-                        <h2 class="fw-bold mb-0"><?= (int)($stats['released'] ?? 0) ?></h2>
+                        <h2 class="fw-bold mb-0" data-stat="released"><?= (int)($stats['released'] ?? 0) ?></h2>
                     </div>
                     <i class="bi bi-archive-fill fs-1 opacity-50"></i>
                 </div>
@@ -93,50 +93,60 @@ $isVerified = ($status === 'verified');
     <!-- Recent Requests Section -->
     <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">Recent Document Requests</h5>
-            <a href="<?= $basePath ?>/testing-frontend/user-page/residents/my-requests.php" class="small text-decoration-none">View All</a>
+            <div>
+                <h5 class="fw-bold mb-0">Recent Document Requests</h5>
+                <small class="text-muted" id="dashboard-last-updated"></small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" id="dashboard-refresh-btn" title="Refresh Requests">
+                    <i class="bi bi-arrow-clockwise"></i> <span>Refresh</span>
+                </button>
+                <a href="<?= $basePath ?>/testing-frontend/user-page/residents/my-requests.php" class="small text-decoration-none">View All</a>
+            </div>
         </div>
 
-        <?php if (!empty($recentRequests)): ?>
-            <div class="list-group list-group-flush">
-                <?php foreach ($recentRequests as $req): 
-                    $badgeClass = match(strtolower($req['status'])) {
-                        'approved', 'ready for release' => 'bg-success-subtle text-success',
-                        'pending' => 'bg-warning-subtle text-warning',
-                        'claimed', 'released' => 'bg-info-subtle text-info',
-                        'rejected' => 'bg-danger-subtle text-danger',
-                        default => 'bg-secondary-subtle text-secondary'
-                    };
-                ?>
-                <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center px-0 py-3">
-                    <div class="d-flex align-items-center mb-2 mb-sm-0">
-                        <div class="rounded p-2 bg-light border me-3">
-                            <i class="bi bi-file-earmark-text-fill fs-4 text-primary"></i>
+        <div id="resident-recent-container">
+            <?php if (!empty($recentRequests)): ?>
+                <div class="list-group list-group-flush" id="resident-requests-list">
+                    <?php foreach ($recentRequests as $req): 
+                        $badgeClass = match(strtolower($req['status'])) {
+                            'approved', 'ready for release' => 'bg-success-subtle text-success',
+                            'pending' => 'bg-warning-subtle text-warning',
+                            'claimed', 'released' => 'bg-info-subtle text-info',
+                            'rejected' => 'bg-danger-subtle text-danger',
+                            default => 'bg-secondary-subtle text-secondary'
+                        };
+                    ?>
+                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center px-0 py-3">
+                        <div class="d-flex align-items-center mb-2 mb-sm-0">
+                            <div class="rounded p-2 bg-light border me-3">
+                                <i class="bi bi-file-earmark-text-fill fs-4 text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8') ?></h6>
+                                <small class="text-muted">
+                                    Requested on <?= date('M d, Y', strtotime($req['request_date'])) ?> &bull; Ref #REQ-<?= str_pad($req['request_id'], 4, '0', STR_PAD_LEFT) ?>
+                                </small>
+                            </div>
                         </div>
                         <div>
-                            <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8') ?></h6>
-                            <small class="text-muted">
-                                Requested on <?= date('M d, Y', strtotime($req['request_date'])) ?> &bull; Ref #REQ-<?= str_pad($req['request_id'], 4, '0', STR_PAD_LEFT) ?>
-                            </small>
+                            <span class="badge rounded-pill px-3 py-2 <?= $badgeClass ?>">
+                                <?= htmlspecialchars($req['status'], ENT_QUOTES, 'UTF-8') ?>
+                            </span>
                         </div>
                     </div>
-                    <div>
-                        <span class="badge rounded-pill px-3 py-2 <?= $badgeClass ?>">
-                            <?= htmlspecialchars($req['status'], ENT_QUOTES, 'UTF-8') ?>
-                        </span>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
-                <?php endforeach; ?>
-            </div>
-        <?php else: ?>
-            <div class="text-center py-5">
-                <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-                <h6 class="text-muted">No document requests yet</h6>
-                <p class="small text-muted mb-3">Your submitted document requests and status updates will appear here.</p>
-                <a href="<?= $basePath ?>/testing-frontend/user-page/residents/new-request.php" class="btn btn-sm btn-outline-primary">
-                    Submit your first request
-                </a>
-            </div>
-        <?php endif; ?>
+            <?php else: ?>
+                <div class="text-center py-5" id="resident-requests-empty">
+                    <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                    <h6 class="text-muted">No document requests yet</h6>
+                    <p class="small text-muted mb-3">Your submitted document requests and status updates will appear here.</p>
+                    <a href="<?= $basePath ?>/testing-frontend/user-page/residents/new-request.php" class="btn btn-sm btn-outline-primary">
+                        Submit your first request
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 </div>

@@ -9,7 +9,7 @@ $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-uppercase fw-semibold small mb-1">User Accounts</p>
-                        <h2 class="fw-bold mb-0"><?= (int)($stats['total_users'] ?? 0) ?></h2>
+                        <h2 class="fw-bold mb-0" data-stat="total_users"><?= (int)($stats['total_users'] ?? 0) ?></h2>
                     </div>
                     <i class="bi bi-people-fill fs-1 opacity-50"></i>
                 </div>
@@ -20,7 +20,7 @@ $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-uppercase fw-semibold small mb-1">Resident Records</p>
-                        <h2 class="fw-bold mb-0"><?= (int)($stats['total_residents'] ?? 0) ?></h2>
+                        <h2 class="fw-bold mb-0" data-stat="total_residents"><?= (int)($stats['total_residents'] ?? 0) ?></h2>
                     </div>
                     <i class="bi bi-person-vcard-fill fs-1 opacity-50"></i>
                 </div>
@@ -31,7 +31,7 @@ $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-uppercase fw-semibold small mb-1">Document Requests</p>
-                        <h2 class="fw-bold mb-0"><?= (int)($stats['total_requests'] ?? 0) ?></h2>
+                        <h2 class="fw-bold mb-0" data-stat="total_requests"><?= (int)($stats['total_requests'] ?? 0) ?></h2>
                     </div>
                     <i class="bi bi-file-earmark-bar-graph-fill fs-1 opacity-50"></i>
                 </div>
@@ -42,7 +42,7 @@ $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p class="text-uppercase fw-semibold small mb-1">Document Types</p>
-                        <h2 class="fw-bold mb-0"><?= (int)($stats['total_documents'] ?? 0) ?></h2>
+                        <h2 class="fw-bold mb-0" data-stat="total_documents"><?= (int)($stats['total_documents'] ?? 0) ?></h2>
                     </div>
                     <i class="bi bi-file-earmark-text fs-1 opacity-50"></i>
                 </div>
@@ -107,55 +107,62 @@ $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h5 class="fw-bold mb-0">Recent System Activity</h5>
-                <small class="text-muted">Latest document requests submitted across the barangay</small>
+                <small class="text-muted" id="dashboard-last-updated">Latest document requests submitted across the barangay</small>
             </div>
-            <a href="<?= $basePath ?>/testing-frontend/user-page/admins/reports.php" class="btn btn-sm btn-outline-secondary">
-                Generate Full Report
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" id="dashboard-refresh-btn" title="Refresh Activity">
+                    <i class="bi bi-arrow-clockwise"></i> <span>Refresh</span>
+                </button>
+                <a href="<?= $basePath ?>/testing-frontend/user-page/admins/reports.php" class="btn btn-sm btn-outline-secondary">
+                    Generate Full Report
+                </a>
+            </div>
         </div>
 
-        <?php if (!empty($recentRequests)): ?>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Ref #</th>
-                            <th>Resident Name</th>
-                            <th>Document Requested</th>
-                            <th>Date Submitted</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($recentRequests as $req): 
-                            $badgeClass = match(strtolower($req['status'])) {
-                                'approved', 'ready for release' => 'bg-success-subtle text-success',
-                                'pending' => 'bg-warning-subtle text-warning',
-                                'claimed', 'released' => 'bg-info-subtle text-info',
-                                'rejected' => 'bg-danger-subtle text-danger',
-                                default => 'bg-secondary-subtle text-secondary'
-                            };
-                        ?>
-                        <tr>
-                            <td class="fw-semibold text-muted">REQ-<?= str_pad($req['request_id'], 4, '0', STR_PAD_LEFT) ?></td>
-                            <td><?= htmlspecialchars($req['first_name'] . ' ' . $req['last_name'], ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><small><?= date('M d, Y', strtotime($req['request_date'])) ?></small></td>
-                            <td>
-                                <span class="badge rounded-pill px-3 py-2 <?= $badgeClass ?>">
-                                    <?= htmlspecialchars($req['status'], ENT_QUOTES, 'UTF-8') ?>
-                                </span>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <div class="text-center py-5">
-                <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-                <h6 class="text-muted">No request activity recorded yet</h6>
-            </div>
-        <?php endif; ?>
+        <div id="admin-activity-container">
+            <?php if (!empty($recentRequests)): ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ref #</th>
+                                <th>Resident Name</th>
+                                <th>Document Requested</th>
+                                <th>Date Submitted</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-activity-tbody">
+                            <?php foreach ($recentRequests as $req): 
+                                $badgeClass = match(strtolower($req['status'])) {
+                                    'approved', 'ready for release' => 'bg-success-subtle text-success',
+                                    'pending' => 'bg-warning-subtle text-warning',
+                                    'claimed', 'released' => 'bg-info-subtle text-info',
+                                    'rejected' => 'bg-danger-subtle text-danger',
+                                    default => 'bg-secondary-subtle text-secondary'
+                                };
+                            ?>
+                            <tr>
+                                <td class="fw-semibold text-muted">REQ-<?= str_pad($req['request_id'], 4, '0', STR_PAD_LEFT) ?></td>
+                                <td><?= htmlspecialchars($req['first_name'] . ' ' . $req['last_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><small><?= date('M d, Y', strtotime($req['request_date'])) ?></small></td>
+                                <td>
+                                    <span class="badge rounded-pill px-3 py-2 <?= $badgeClass ?>">
+                                        <?= htmlspecialchars($req['status'], ENT_QUOTES, 'UTF-8') ?>
+                                    </span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <div class="text-center py-5" id="admin-activity-empty">
+                    <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                    <h6 class="text-muted">No request activity recorded yet</h6>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 </div>

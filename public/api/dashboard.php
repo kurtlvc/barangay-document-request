@@ -1,32 +1,18 @@
 <?php
-require_once __DIR__ . '/config/database.php';
-require_once __DIR__ . '/includes/functions.php';
-global $pdo;
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 bdr_start_session();
+$user = bdr_require_auth();
+bdr_require_method(['GET']);
 
-if (empty($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
-
-$userRole = $_SESSION['role'] ?? 'resident';
-$userName = $_SESSION['name'] ?? 'User';
-$userEmail = $_SESSION['email'] ?? '';
-$residentId = $_SESSION['resident_id'] ?? null;
-$residentStatus = $_SESSION['resident_status'] ?? 'pending';
-
-$basePath = '.';
+$role = $user['role'];
+$residentId = $user['resident_id'] ?? null;
 $stats = [];
 $recentRequests = [];
 
-// Prepare data per role
 try {
-    if ($userRole === 'resident') {
-        $pageTitle = "Resident Dashboard";
-        $pageDescription = "Welcome back, {$userName}! Track and submit document requests.";
-        $moduleFile = __DIR__ . '/testing-frontend/includes/dashboard-resident.php';
-
+    if ($role === 'resident') {
         if ($residentId) {
             // Aggregate request statistics for this resident
             $stmtStats = $pdo->prepare("
@@ -54,17 +40,16 @@ try {
                 FROM requests r
                 JOIN document_types d ON d.document_id = r.document_id
                 WHERE r.resident_id = :resident_id
-                ORDER BY r.request_date DESC
+                ORDER BY r.request_date DESC, r.request_id DESC
                 LIMIT 5
             ");
             $stmtRecent->execute([':resident_id' => $residentId]);
             $recentRequests = $stmtRecent->fetchAll();
+        } else {
+            $stats = ['total' => 0, 'pending' => 0, 'approved' => 0, 'released' => 0];
+            $recentRequests = [];
         }
-    } elseif ($userRole === 'staff') {
-        $pageTitle = "Staff Operations Dashboard";
-        $pageDescription = "Manage and process incoming document requests.";
-        $moduleFile = __DIR__ . '/testing-frontend/includes/dashboard-staff.php';
-
+    } elseif ($role === 'staff') {
         // Overall request stats
         $stmtStats = $pdo->query("
             SELECT 
@@ -76,7 +61,7 @@ try {
         ");
         $stats = $stmtStats->fetch() ?: [];
 
-        // Unprocessed queue
+        // Unprocessed queue / recent requests
         $stmtRecent = $pdo->query("
             SELECT 
                 r.request_id,
@@ -89,17 +74,12 @@ try {
             FROM requests r
             JOIN document_types d ON d.document_id = r.document_id
             JOIN residents res ON res.resident_id = r.resident_id
-            ORDER BY r.request_date DESC
+            ORDER BY r.request_date DESC, r.request_id DESC
             LIMIT 6
         ");
         $recentRequests = $stmtRecent->fetchAll();
-    } else {
-        // Admin
-        $pageTitle = "Administration Dashboard";
-        $pageDescription = "System overview, user accounts, and master resident records.";
-        $moduleFile = __DIR__ . '/testing-frontend/includes/dashboard-admin.php';
-
-        // Admin counts
+    } elseif ($role === 'admin') {
+        // Admin overview counts
         $stmtStats = $pdo->query("
             SELECT 
                 (SELECT COUNT(*) FROM users) AS total_users,
@@ -121,27 +101,34 @@ try {
             FROM requests r
             JOIN document_types d ON d.document_id = r.document_id
             JOIN residents res ON res.resident_id = r.resident_id
-            ORDER BY r.request_date DESC
+            ORDER BY r.request_date DESC, r.request_id DESC
             LIMIT 6
         ");
         $recentRequests = $stmtRecent->fetchAll();
+    } else {
+        bdr_json_response(['status' => 'error', 'message' => 'Unauthorized role.'], 403);
     }
 } catch (PDOException $e) {
-    // Graceful fallback if query fails
-    $stats = [];
-    $recentRequests = [];
+    bdr_json_response(['status' => 'error', 'message' => 'Database query failed.'], 500);
 }
 
-// Render Modular Layout
-include __DIR__ . '/testing-frontend/page-layout/header.php';
-
-if (isset($moduleFile) && file_exists($moduleFile)) {
-    include $moduleFile;
-} else {
-    echo "<div class='alert alert-danger'>Dashboard module not found for role: " . htmlspecialchars($userRole, ENT_QUOTES, 'UTF-8') . "</div>";
+// Ensure numeric counts are cast to integer
+$cleanStats = [];
+foreach ($stats as $key => $val) {
+    $cleanStats[$key] = (int) $val;
 }
 
-// Enqueue dashboard AJAX fetching script
-$pageScripts = ['assets/js/dashboard.js'];
-
-include __DIR__ . '/testing-frontend/page-layout/footer.php';
+bdr_json_response([
+    'status' => 'ok',
+    'role' => $role,
+    'user' => [
+        'id' => $user['id'],
+        'name' => $user['name'],
+        'email' => $user['email'],
+        'resident_id' => $user['resident_id'],
+        'resident_status' => $user['resident_status'],
+    ],
+    'stats' => $cleanStats,
+    'recent_requests' => $recentRequests,
+    'timestamp' => date('c')
+]);

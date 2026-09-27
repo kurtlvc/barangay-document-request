@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
                     <h6 class="text-muted">No document requests yet</h6>
                     <p class="small text-muted mb-3">Your submitted document requests and status updates will appear here.</p>
-                    <a href="${basePath}/testing-frontend/user-page/residents/new-request.php" class="btn btn-sm btn-outline-primary">
+                    <a href="${basePath}/resident/new-request.php" class="btn btn-sm btn-outline-primary">
                         Submit your first request
                     </a>
                 </div>
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </span>
                     </td>
                     <td class="text-end">
-                        <a href="${basePath}/testing-frontend/user-page/staffs/process-requests.php" class="btn btn-sm btn-outline-dark">
+                        <a href="${basePath}/staff/process-requests.php" class="btn btn-sm btn-outline-dark">
                             Process
                         </a>
                     </td>

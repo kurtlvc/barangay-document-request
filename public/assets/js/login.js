@@ -46,6 +46,13 @@ if (loginForm) {
 }
 
 const registerForm = document.getElementById('registerForm');
+if (window.location.hash === '#register-pane') {
+    const registerTab = document.getElementById('nav-register-tab');
+    if (registerTab && window.bootstrap?.Tab) {
+        bootstrap.Tab.getOrCreateInstance(registerTab).show();
+    }
+}
+
 if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();

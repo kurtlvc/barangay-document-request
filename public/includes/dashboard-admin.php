@@ -1,6 +1,7 @@
 <?php
 $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '.');
 ?>
+<main class="flex-grow-1 overflow-auto p-3 p-lg-4">
 <div class="dashboard-admin">
     <!-- Overview Metric Cards -->
     <div class="row g-3 mb-4">
@@ -166,3 +167,4 @@ $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '
         </div>
     </div>
 </div>
+</main>

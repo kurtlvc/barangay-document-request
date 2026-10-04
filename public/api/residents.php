@@ -42,6 +42,29 @@ if (($method === 'PATCH' || $method === 'PUT' || $method === 'POST') && ($data['
     bdr_json_response(['status' => 'ok', 'message' => 'Resident status updated.']);
 }
 
+if ($method === 'PATCH' || $method === 'PUT') {
+    $residentId = $residentId ?: (int) ($data['resident_id'] ?? 0);
+    $parts = preg_split('/\s+/', trim($data['full_name'] ?? ''), 2);
+    $first = trim($data['first_name'] ?? ($parts[0] ?? ''));
+    $last = trim($data['last_name'] ?? ($parts[1] ?? ''));
+    $address = trim($data['address'] ?? '');
+    $contact = trim($data['contact_number'] ?? '');
+    $email = strtolower(trim($data['email'] ?? ''));
+    if ($residentId <= 0 || $first === '' || $last === '' || $address === '' || $contact === '' || ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL))) bdr_json_response(['status' => 'error', 'message' => 'Resident name, contact number, address, and a valid email when provided are required.'], 422);
+    try {
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare("UPDATE residents r LEFT JOIN users u ON u.id = r.user_id SET r.first_name = ?, r.last_name = ?, r.address = ?, r.contact_number = ?, u.name = ?, u.email = COALESCE(NULLIF(?, ''), u.email) WHERE r.resident_id = ?");
+        $stmt->execute([$first, $last, $address, $contact, "$first $last", $email, $residentId]);
+        $exists = $pdo->prepare('SELECT resident_id FROM residents WHERE resident_id = ?'); $exists->execute([$residentId]);
+        if (!$exists->fetch()) { $pdo->rollBack(); bdr_json_response(['status' => 'error', 'message' => 'Resident not found.'], 404); }
+        $pdo->commit();
+        bdr_json_response(['status' => 'ok', 'message' => 'Resident details updated.']);
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        bdr_json_response(['status' => 'error', 'message' => 'That email address is already in use.'], 409);
+    }
+}
+
 if ($method === 'POST') {
     $first = trim($data['first_name'] ?? ''); $last = trim($data['last_name'] ?? '');
     $address = trim($data['address'] ?? ''); $contact = trim($data['contact_number'] ?? '');

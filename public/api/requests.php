@@ -10,7 +10,7 @@ $validStatuses = ['Pending', 'Processing', 'Ready for Release', 'Released', 'Rej
 
 function request_row(PDO $pdo, int $requestId, ?int $residentId = null): array|false
 {
-    $sql = 'SELECT q.request_id, q.request_date, q.status, q.remarks, q.resident_id, q.document_id,
+    $sql = 'SELECT q.request_id, q.request_date, q.status, q.remarks, q.purpose, q.resident_id, q.document_id,
                    d.document_number, d.document_name, d.processing_days,
                    CONCAT(r.first_name, " ", r.last_name) AS resident_name, r.address, r.contact_number,
                    p.name AS processed_by_name
@@ -58,14 +58,16 @@ if ($method === 'POST' && ($data['action'] ?? '') !== 'update-status') {
     if (!$user['resident_id'] || $user['resident_status'] !== 'verified') bdr_json_response(['status' => 'error', 'message' => 'Your resident profile must be verified before submitting a request.'], 403);
     $documentId = filter_var($data['document_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     $remarks = trim($data['remarks'] ?? '');
+    $purpose = trim($data['purpose'] ?? '');
+    if ($purpose === '') bdr_json_response(['status' => 'error', 'message' => 'Purpose of request is required.'], 422);
     if ($documentId === false) bdr_json_response(['status' => 'error', 'message' => 'Choose a document type.'], 422);
-    $document = $pdo->prepare('SELECT document_id FROM document_types WHERE document_id = ?');
+    $document = $pdo->prepare('SELECT document_id FROM document_types WHERE document_id = ? AND is_active = 1');
     $document->execute([$documentId]);
     if (!$document->fetch()) bdr_json_response(['status' => 'error', 'message' => 'Document type not found.'], 404);
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('INSERT INTO requests (resident_id, document_id, status, remarks) VALUES (?, ?, "Pending", ?)');
-        $stmt->execute([$user['resident_id'], $documentId, $remarks ?: null]);
+        $stmt = $pdo->prepare('INSERT INTO requests (resident_id, document_id, status, remarks, purpose) VALUES (?, ?, "Pending", ?, ?)');
+        $stmt->execute([$user['resident_id'], $documentId, $remarks ?: null, $purpose]);
         $newRequestId = (int) $pdo->lastInsertId();
         $history = $pdo->prepare('INSERT INTO request_history (request_id, status, remarks, updated_by) VALUES (?, "Pending", ?, ?)');
         $history->execute([$newRequestId, $remarks ?: 'Request submitted.', $user['id']]);

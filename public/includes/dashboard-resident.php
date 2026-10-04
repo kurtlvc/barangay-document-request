@@ -4,6 +4,7 @@ $resId = $_SESSION['resident_id'] ?? null;
 $status = $_SESSION['resident_status'] ?? 'pending';
 $isVerified = ($status === 'verified');
 ?>
+<main class="resident-content flex-grow-1 overflow-auto p-3 p-lg-4">
 <div class="dashboard-resident">
     <!-- Verification Status Banner -->
     <div class="alert <?= $isVerified ? 'alert-success bg-success-subtle text-success-emphasis border-success-subtle' : 'alert-warning bg-warning-subtle text-warning-emphasis border-warning-subtle' ?> d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm">
@@ -150,3 +151,4 @@ $isVerified = ($status === 'verified');
         </div>
     </div>
 </div>
+</main>

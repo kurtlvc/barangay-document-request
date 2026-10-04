@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(190) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('resident', 'staff', 'admin') NOT NULL DEFAULT 'resident',
+    contact_number VARCHAR(20) NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -31,7 +33,10 @@ CREATE TABLE document_types (
     document_number   VARCHAR(50)  NOT NULL UNIQUE,
     document_name      VARCHAR(100) NOT NULL,  
     file_path         VARCHAR(255) NULL, 
-    processing_days   INT NOT NULL DEFAULT 1
+    processing_days   INT NOT NULL DEFAULT 1,
+    fee               DECIMAL(10,2) NOT NULL DEFAULT 0,
+    requirements      TEXT NULL,
+    is_active         TINYINT(1) NOT NULL DEFAULT 1
 );
 
 CREATE TABLE requests (
@@ -41,6 +46,7 @@ CREATE TABLE requests (
     processed_by  INT NULL,  
     request_date  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status        VARCHAR(30) NOT NULL DEFAULT 'Pending',
+    purpose       TEXT NULL,
     remarks       TEXT NULL,
 
     CONSTRAINT fk_requests_resident

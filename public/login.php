@@ -19,8 +19,8 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?> — Barangay Document Requests</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./assets/css/bootstrap-icons/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/styles.css">
     <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
@@ -28,13 +28,13 @@ if (isset($_SESSION['user_id'])) {
 <body>
     <nav class="navbar navbar-expand-lg p-3 fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand fw-semibold" href="index.php"> <img src="logo.png" alt="."> Request</a>
+            <a class="navbar-brand fw-semibold" href="index.php"> <img src="logo.png" alt="DokuBayan"> DokuBayan</a>
         </div>
     </nav>
     <main class="form-page row">
         <section class="intro-panel col-lg-6">
             <div class="container px-xl-5 ">
-                <p class="service-label badge rounded-pill">ONLINE DOCUMENT REQUEST SERVICE OF BRGY. </p>
+                <p class="service-label badge rounded-pill">ONLINE DOCUMENT REQUEST SERVICE OF BRGY. MAMATID</p>
                 <h1 class="intro fw-bold">Request barangay documents without <br> the long wait.</h1>
                 <p class="sub-intro">Submit document requests online, follow their status, and know when your document is ready for release.</p>
             </div>    

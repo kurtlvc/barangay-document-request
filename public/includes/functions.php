@@ -65,6 +65,23 @@ function bdr_require_auth(?array $roles = null): array
         bdr_json_response(['status' => 'error', 'message' => 'Authentication is required.'], 401);
     }
 
+    if (isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO) {
+        $activeCheck = $GLOBALS['pdo']->prepare('SELECT u.role, u.is_active, r.resident_id, r.status AS resident_status FROM users u LEFT JOIN residents r ON r.user_id = u.id WHERE u.id = ?');
+        $activeCheck->execute([$_SESSION['user_id']]);
+        $accountState = $activeCheck->fetch();
+        if (!$accountState || !(int) $accountState['is_active']) {
+            $_SESSION = [];
+            session_destroy();
+            bdr_json_response(['status' => 'error', 'message' => 'Your account is inactive. Please contact an administrator.'], 401);
+        }
+        $_SESSION['role'] = $accountState['role'];
+        $_SESSION['resident_id'] = $accountState['resident_id'] !== null ? (int) $accountState['resident_id'] : null;
+        $_SESSION['resident_status'] = $accountState['resident_status'];
+        if ($roles !== null && !in_array($accountState['role'], $roles, true)) {
+            bdr_json_response(['status' => 'error', 'message' => 'You do not have permission for this action.'], 403);
+        }
+    }
+
     $user = [
         'id' => (int) $_SESSION['user_id'],
         'name' => $_SESSION['name'] ?? '',
@@ -114,4 +131,3 @@ function bdr_base_path(): string
     }
     return $base;
 }
-

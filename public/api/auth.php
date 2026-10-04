@@ -195,7 +195,7 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
                     u.name, 
                     u.email, 
                     u.password_hash, 
-                    u.role,
+                    u.role, u.is_active,
                     r.resident_id,
                     r.status AS resident_status,
                     r.first_name,
@@ -212,7 +212,7 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
         $row = $stmt->fetch();
 
         // Check password
-        if ($row && password_verify($password, $row['password_hash'])) {
+        if ($row && (int) $row['is_active'] === 1 && password_verify($password, $row['password_hash'])) {
             session_regenerate_id(true);
             $_SESSION['user_id'] = (int)$row['user_id'];
             $_SESSION['name'] = $row['name'];

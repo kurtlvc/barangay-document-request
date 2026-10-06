@@ -28,7 +28,6 @@
                 <div class="navbar-nav align-items-end">
                     <a href="#aboutpage" class="nav-item nav-link">About</a>
                     <a href="#howpage" class="nav-item nav-link">How it works</a>
-                    <a href="#" class="nav-item nav-link"><i class="bi bi-moon-fill"></i></a>
                 </div>
             </div>
         </div>

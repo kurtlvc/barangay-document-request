@@ -20,13 +20,13 @@ $statusLabels = [
     'processing' => 'Processing',
     'ready' => 'Ready for Release',
     'claimed' => 'Released',
+    'cancelled' => 'Cancelled',
 ];
 $statusStages = ['pending', 'processing', 'ready', 'claimed'];
 $stageIcons = ['bi-hourglass-split', 'bi-gear-fill', 'bi-patch-check-fill', 'bi-box-seam-fill'];
 $actionLabels = [
     'pending' => 'Start Processing',
     'processing' => 'Approve Request',
-    'ready' => 'Release Document',
 ];
 ?>
 
@@ -95,6 +95,9 @@ $actionLabels = [
                                     <p class="small text-muted-soft mb-0">Review and move the request through each stage.</p>
                                 </div>
                             </div>
+                            <?php if ($request['status'] === 'cancelled'): ?>
+                                <p class="mb-0 text-muted-soft">This request was cancelled by the resident.</p>
+                            <?php else: ?>
                             <div id="requestTimeline" data-request-id="<?= (int) $request["id"] ?>" class="request-timeline mb-4" data-stage="<?= (int) $currentStage ?>">
                                 <?php foreach (['Pending', 'Processing', 'Approved', 'Released'] as $index => $step): ?>
                                     <div class="status-step <?= $index < $currentStage ? 'is-complete' : ($index === $currentStage ? 'is-current' : '') ?>" data-step="<?= $index ?>"<?= $index === $currentStage ? ' aria-current="step"' : '' ?>>
@@ -109,42 +112,26 @@ $actionLabels = [
                             </div>
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 border-top pt-3">
                                 <span id="workflowMessage" class="small text-muted-soft" aria-live="polite">
-                                    <?= $request['status'] === 'claimed' ? 'This request has been released.' : 'Next: ' . htmlspecialchars($actionLabels[$request['status']] ?? 'No further action') ?>
+                                    <?= $request['status'] === 'claimed' ? 'This request has been released.' : ($request['status'] === 'ready' ? 'Ready for release. Complete this request on Release Management.' : 'Next: ' . htmlspecialchars($actionLabels[$request['status']] ?? 'No further action')) ?>
                                 </span>
                                 <?php if (isset($actionLabels[$request['status']])): ?>
-                                    <button type="button" class="btn btn-brand" id="requestAction" data-next-status="<?= htmlspecialchars($request['status'] === 'pending' ? 'processing' : ($request['status'] === 'processing' ? 'ready' : 'claimed')) ?>">
+                                    <button type="button" class="btn btn-brand" id="requestAction" data-next-status="<?= $request['status'] === 'pending' ? 'processing' : 'ready' ?>">
                                         <i class="bi <?= $request['status'] === 'pending' ? 'bi-play-fill' : ($request['status'] === 'processing' ? 'bi-check-lg' : 'bi-box-arrow-up-right') ?> me-1" aria-hidden="true"></i>
                                         <?= htmlspecialchars($actionLabels[$request['status']]) ?>
                                     </button>
+                                <?php elseif ($request['status'] === 'ready'): ?>
+                                    <a class="btn btn-brand" href="release-management.php">Open Release Management</a>
                                 <?php else: ?>
                                     <span class="status-badge status-claimed"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Complete</span>
                                 <?php endif; ?>
                             </div>
+                            <?php endif; ?>
                         </section>
                     </div>
                 </div>
             <?php endif; ?>
         </div>
 
-        <?php if ($request): ?>
-            <div class="modal fade" id="confirmRequestRelease" tabindex="-1" aria-labelledby="confirmRequestReleaseTitle" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h2 class="modal-title h5 fw-bold heading-green" id="confirmRequestReleaseTitle">Confirm document release</h2>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            Mark <strong><?= htmlspecialchars($request['document']) ?></strong> for <strong><?= htmlspecialchars($request['name']) ?></strong> as released?
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-brand" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-brand" id="confirmRequestReleaseButton">Confirm release</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
     </main>
 
 <script src="../assets/js/staff.js"></script>

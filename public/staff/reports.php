@@ -73,12 +73,6 @@ reset($points);
                     </div>
                 </div>
                 <div class="col-6 col-lg">
-                    <div class="stat-card h-100 px-3 py-3 border-end">
-                        <div class="stat-card-header text-secondary mb-2">Cancelled</div>
-                        <div class="stat-card-value"><?= (int) $summary['cancelled'] ?></div>
-                    </div>
-                </div>
-                <div class="col-6 col-lg">
                     <div class="stat-card h-100 px-3 py-3 border-end-0">
                         <div class="stat-card-header text-secondary mb-2">On-Time Rate</div>
                         <div class="stat-card-value"><?= (int) $summary['on_time_pct'] ?>%</div>

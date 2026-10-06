@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/page-guard.php';
 require_once __DIR__ . '/../config/database.php';
 bdr_require_page_role(['staff']);
+
 $pageTitle = "Release Management";
 $pageDescription = "Complete requests when documents are claimed";
 $role = $_SESSION['role'] ?? 'staff';
@@ -10,7 +11,7 @@ $basePath = '..';
 
 $notifications = [];
 $readyForRelease = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r.last_name) AS name, d.document_name AS doc, CONCAT('REQ-', q.request_id) AS ref FROM requests q JOIN residents r ON r.resident_id = q.resident_id JOIN document_types d ON d.document_id = q.document_id WHERE LOWER(q.status) = 'ready for release' ORDER BY q.request_date")->fetchAll();
-$recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r.last_name) AS name, d.document_name AS doc, CONCAT('REQ-', q.request_id) AS ref, DATE_FORMAT(q.request_date, '%b %e, %Y') AS when FROM requests q JOIN residents r ON r.resident_id = q.resident_id JOIN document_types d ON d.document_id = q.document_id WHERE LOWER(q.status) = 'released' ORDER BY q.request_date DESC LIMIT 10")->fetchAll();
+$recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r.last_name) AS name, d.document_name AS doc, CONCAT('REQ-', q.request_id) AS ref, DATE_FORMAT(q.request_date, '%b %e, %Y') AS claimed_on FROM requests q JOIN residents r ON r.resident_id = q.resident_id JOIN document_types d ON d.document_id = q.document_id WHERE LOWER(q.status) = 'released' ORDER BY q.request_date DESC LIMIT 10")->fetchAll();
 ?>
 
 <?php include __DIR__ . '/../page-layout/header.php' ?>
@@ -80,7 +81,7 @@ $recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r
                                     <td class="fw-semibold heading-green">
                                         <?= htmlspecialchars($r['doc']) ?>
                                     </td>
-                                    <td class="text-muted-soft"><?= htmlspecialchars($r['when']) ?></td>
+                                    <td class="text-muted-soft"><?= htmlspecialchars($r['claimed_on']) ?></td>
                                     <td class="text-end"><span class="status-badge status-claimed"><i class="bi bi-check-circle-fill"></i> Claimed</span></td>
                                 </tr>
                             <?php endforeach; ?>

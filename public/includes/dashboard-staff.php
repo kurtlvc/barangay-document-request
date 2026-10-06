@@ -3,49 +3,42 @@ $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '
 ?>
 <main class="flex-grow-1 overflow-auto p-3 p-lg-4">
 <div class="dashboard-staff">
-    <!-- Overview Metric Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm rounded-3 p-3 pending-card h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-uppercase fw-semibold small mb-1">Pending Review</p>
-                        <h2 class="fw-bold mb-0" data-stat="pending"><?= (int)($stats['pending'] ?? 0) ?></h2>
+    <div class="stats-panel mb-4">
+        <div class="row g-0">
+            <div class="col-12 col-lg-4">
+                <div class="stat-card h-100 px-3 py-3 border-end">
+                    <p class="stat-card-header mb-2">Pending Review</p>
+                    <div class="d-flex align-items-end gap-2">
+                        <p class="stat-card-value stat-card-value-large" data-stat="pending"><?= (int)($stats['pending'] ?? 0) ?></p>
+                        <p class="stat-card-meta">requests</p>
                     </div>
-                    <i class="bi bi-clock-history fs-1 opacity-50"></i>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm rounded-3 p-3 active-card h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-uppercase fw-semibold small mb-1">Approved</p>
-                        <h2 class="fw-bold mb-0" data-stat="approved"><?= (int)($stats['approved'] ?? 0) ?></h2>
+            <div class="col-4 col-lg">
+                <div class="stat-card h-100 px-3 py-3 border-end">
+                    <p class="stat-card-header text-secondary mb-2">Approved</p>
+                    <div class="d-flex align-items-end gap-2">
+                        <p class="stat-card-value" data-stat="approved"><?= (int)($stats['approved'] ?? 0) ?></p>
+                        <p class="stat-card-meta">requests</p>
                     </div>
-                    <i class="bi bi-check-circle-fill fs-1 opacity-50"></i>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm rounded-3 p-3 released-card h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-uppercase fw-semibold small mb-1">Released / Claimed</p>
-                        <h2 class="fw-bold mb-0" data-stat="released"><?= (int)($stats['released'] ?? 0) ?></h2>
+            <div class="col-4 col-lg">
+                <div class="stat-card h-100 px-3 py-3 border-end">
+                    <p class="stat-card-header text-secondary mb-2">Released / Claimed</p>
+                    <div class="d-flex align-items-end gap-2">
+                        <p class="stat-card-value" data-stat="released"><?= (int)($stats['released'] ?? 0) ?></p>
+                        <p class="stat-card-meta">documents</p>
                     </div>
-                    <i class="bi bi-box-seam-fill fs-1 opacity-50"></i>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm rounded-3 p-3 bg-light border text-secondary h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-uppercase fw-semibold small mb-1">Total System Requests</p>
-                        <h2 class="fw-bold mb-0" data-stat="total"><?= (int)($stats['total'] ?? 0) ?></h2>
+            <div class="col-4 col-lg">
+                <div class="stat-card h-100 px-3 py-3">
+                    <p class="stat-card-header text-secondary mb-2">Total System Requests</p>
+                    <div class="d-flex align-items-end gap-2">
+                        <p class="stat-card-value" data-stat="total"><?= (int)($stats['total'] ?? 0) ?></p>
+                        <p class="stat-card-meta">requests</p>
                     </div>
-                    <i class="bi bi-files fs-1 opacity-50"></i>
                 </div>
             </div>
         </div>
@@ -70,65 +63,44 @@ $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '
     </div>
 
     <!-- Unprocessed Requests Table / Queue -->
-    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="panel-white p-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-                <h5 class="fw-bold mb-0">Incoming Document Request Queue</h5>
+                <h5 class="fw-bold mb-0">Document Request Queue</h5>
                 <small class="text-muted" id="dashboard-last-updated">Requests submitted by residents requiring review and approval</small>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" id="dashboard-refresh-btn" title="Refresh Queue">
+                <button type="button" class="btn btn-sm btn-outline-brand d-inline-flex align-items-center gap-1" id="dashboard-refresh-btn" title="Refresh Queue">
                     <i class="bi bi-arrow-clockwise"></i> <span>Refresh</span>
                 </button>
-                <a href="<?= $basePath ?>/staff/process-requests.php" class="btn btn-sm btn-outline-primary">
-                    Open Full Queue
-                </a>
+                <a href="<?= $basePath ?>/staff/process-requests.php" class="btn btn-sm btn-outline-brand d-inline-flex align-items-center">Open Full Queue</a>
             </div>
         </div>
 
         <div id="staff-requests-container">
             <?php if (!empty($recentRequests)): ?>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                    <table class="table table-brand align-middle mb-0">
+                        <thead>
                             <tr>
                                 <th>Ref #</th>
                                 <th>Resident</th>
                                 <th>Document Requested</th>
-                                <th>Contact</th>
                                 <th>Date</th>
                                 <th>Status</th>
-                                <th class="text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody id="staff-requests-tbody">
-                            <?php foreach ($recentRequests as $req): 
-                                $badgeClass = match(strtolower($req['status'])) {
-                                    'approved', 'ready for release' => 'bg-success-subtle text-success',
-                                    'pending' => 'bg-warning-subtle text-warning',
-                                    'claimed', 'released' => 'bg-info-subtle text-info',
-                                    'rejected' => 'bg-danger-subtle text-danger',
-                                    default => 'bg-secondary-subtle text-secondary'
-                                };
+                            <?php foreach ($recentRequests as $req):
                             ?>
                             <tr>
-                                <td class="fw-semibold text-muted">REQ-<?= str_pad($req['request_id'], 4, '0', STR_PAD_LEFT) ?></td>
+                                <td class="fw-semibold heading-green">REQ-<?= str_pad($req['request_id'], 4, '0', STR_PAD_LEFT) ?></td>
                                 <td>
                                     <div class="fw-semibold"><?= htmlspecialchars($req['first_name'] . ' ' . $req['last_name'], ENT_QUOTES, 'UTF-8') ?></div>
                                 </td>
                                 <td><?= htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8') ?></td>
-                                <td><small><?= htmlspecialchars($req['contact_number'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></small></td>
-                                <td><small><?= date('M d, Y', strtotime($req['request_date'])) ?></small></td>
-                                <td>
-                                    <span class="badge rounded-pill px-3 py-2 <?= $badgeClass ?>">
-                                        <?= htmlspecialchars($req['status'], ENT_QUOTES, 'UTF-8') ?>
-                                    </span>
-                                </td>
-                                <td class="text-end">
-                                    <a href="<?= $basePath ?>/staff/process-requests.php" class="btn btn-sm btn-outline-dark">
-                                        Process
-                                    </a>
-                                </td>
+                                <td class="text-muted-soft"><small><?= htmlspecialchars($req['contact_number'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></small></td>
+                                <td class="text-muted-soft"><small><?= date('M d, Y', strtotime($req['request_date'])) ?></small></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

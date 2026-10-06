@@ -34,6 +34,7 @@ try {
         FROM requests r
         JOIN document_types d ON d.document_id = r.document_id
         JOIN residents res ON res.resident_id = r.resident_id
+        WHERE LOWER(r.status) = 'pending'
         ORDER BY r.request_date DESC, r.request_id DESC LIMIT 6
     ");
     $recentRequests = $stmtRecent->fetchAll();

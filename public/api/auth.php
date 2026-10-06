@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 header('Content-Type: application/json; charset=utf-8');
 bdr_start_session();
-bdr_requre_csrf();
+bdr_require_csrf();
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
@@ -186,7 +186,7 @@ if ($action === 'register') {
 // User is logging in
 if (isset($_POST['email']) && isset($_POST['password'])) {
     try {
-        $email = trim($_POST['email']) ?? '';
+        $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
 
         // Query users with LEFT JOIN to residents
@@ -234,7 +234,7 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
         }
     } catch (PDOException $e) {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'An error occurred while processing your request']);
+        echo json_encode(['status' => 'error', 'message' => 'An error occurred while processing your request', 'debug' => $e->getMessage()]);
     }
 } else {
     http_response_code(400);

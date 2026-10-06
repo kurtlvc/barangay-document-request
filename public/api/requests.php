@@ -53,6 +53,37 @@ if ($method === 'GET') {
 bdr_require_write_csrf();
 $data = bdr_request_data();
 
+if ($method === 'POST' && ($data['action'] ?? '') === 'cancel') {
+    if ($user['role'] !== 'resident') bdr_json_response(['status' => 'error', 'message' => 'Only residents can cancel their requests.'], 403);
+    $requestId = filter_var($data['request_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($requestId === false) bdr_json_response(['status' => 'error', 'message' => 'A valid request ID is required.'], 422);
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare('SELECT status FROM requests WHERE request_id = ? AND resident_id = ? FOR UPDATE');
+        $stmt->execute([$requestId, $user['resident_id']]);
+        $request = $stmt->fetch();
+        if (!$request) {
+            $pdo->rollBack();
+            bdr_json_response(['status' => 'error', 'message' => 'Request not found.'], 404);
+        }
+        if ($request['status'] !== 'Pending') {
+            $pdo->rollBack();
+            bdr_json_response(['status' => 'error', 'message' => 'Only pending requests can be cancelled.'], 409);
+        }
+
+        $stmt = $pdo->prepare('UPDATE requests SET status = "Cancelled" WHERE request_id = ?');
+        $stmt->execute([$requestId]);
+        $history = $pdo->prepare('INSERT INTO request_history (request_id, status, remarks, updated_by) VALUES (?, "Cancelled", ?, ?)');
+        $history->execute([$requestId, 'Cancelled by resident.', $user['id']]);
+        $pdo->commit();
+        bdr_json_response(['status' => 'ok', 'message' => 'Request cancelled.']);
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        bdr_json_response(['status' => 'error', 'message' => 'Unable to cancel the request.'], 500);
+    }
+}
+
 if ($method === 'POST' && ($data['action'] ?? '') !== 'update-status') {
     if ($user['role'] !== 'resident') bdr_json_response(['status' => 'error', 'message' => 'Only residents can submit requests.'], 403);
     if (!$user['resident_id'] || $user['resident_status'] !== 'verified') bdr_json_response(['status' => 'error', 'message' => 'Your resident profile must be verified before submitting a request.'], 403);
@@ -85,7 +116,9 @@ if (($method === 'PATCH' || $method === 'PUT') || ($method === 'POST' && ($data[
     $status = trim($data['status'] ?? '');
     $remarks = trim($data['remarks'] ?? '');
     if ($requestId <= 0 || !in_array($status, $validStatuses, true)) bdr_json_response(['status' => 'error', 'message' => 'A valid request ID and status are required.'], 422);
-    if (!request_row($pdo, $requestId)) bdr_json_response(['status' => 'error', 'message' => 'Request not found.'], 404);
+    $existingRequest = request_row($pdo, $requestId);
+    if (!$existingRequest) bdr_json_response(['status' => 'error', 'message' => 'Request not found.'], 404);
+    if ($existingRequest['status'] === 'Cancelled') bdr_json_response(['status' => 'error', 'message' => 'Cancelled requests cannot be processed.'], 409);
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare('UPDATE requests SET status = ?, remarks = ?, processed_by = ? WHERE request_id = ?');

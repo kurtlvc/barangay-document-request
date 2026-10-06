@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (confirmModal) confirmModal.hide();
             pendingRow = null;
-        });
+        }
     }
 
     function updateSidebarBadge(readyBody) {
@@ -111,10 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var requestTimeline = document.getElementById('requestTimeline');
     var requestStatus = document.getElementById('requestStatus');
     var workflowMessage = document.getElementById('workflowMessage');
-    var releaseModalEl = document.getElementById('confirmRequestRelease');
-    var releaseModal = releaseModalEl && window.bootstrap ? new bootstrap.Modal(releaseModalEl) : null;
-    var confirmRequestReleaseButton = document.getElementById('confirmRequestReleaseButton');
-    var pendingWorkflowStatus = null;
     var workflowStages = ['pending', 'processing', 'ready', 'claimed'];
     var workflowIcons = ['bi-hourglass-split', 'bi-gear-fill', 'bi-patch-check-fill', 'bi-box-seam-fill'];
     var workflowLabels = {
@@ -124,8 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
         claimed: 'Released'
     };
     var nextActions = {
-        processing: { label: 'Approve Request', icon: 'bi-check-lg' },
-        ready: { label: 'Release Document', icon: 'bi-box-arrow-up-right' }
+        processing: { label: 'Approve Request', icon: 'bi-check-lg' }
     };
 
     async function advanceRequestWorkflow(status) {
@@ -181,36 +176,18 @@ document.addEventListener('DOMContentLoaded', function () {
             workflowMessage.textContent = 'Next: ' + action.label;
         } else {
             requestAction.remove();
-            workflowMessage.textContent = 'This request has been released.';
+            if (status === 'ready') {
+                workflowMessage.innerHTML = 'Ready for release. <a href="release-management.php">Open Release Management</a>.';
+            } else {
+                workflowMessage.textContent = 'This request has been released.';
+            }
         }
     }
 
     if (requestAction) {
         requestAction.addEventListener('click', function () {
             var nextStatus = requestAction.dataset.nextStatus;
-            if (nextStatus === 'claimed') {
-                if (releaseModal) {
-                    pendingWorkflowStatus = nextStatus;
-                    releaseModal.show();
-                }
-                return;
-            }
             advanceRequestWorkflow(nextStatus);
-        });
-    }
-
-    if (confirmRequestReleaseButton) {
-        confirmRequestReleaseButton.addEventListener('click', function () {
-            if (!pendingWorkflowStatus) return;
-            advanceRequestWorkflow(pendingWorkflowStatus);
-            pendingWorkflowStatus = null;
-            if (releaseModal) releaseModal.hide();
-        });
-    }
-
-    if (releaseModalEl) {
-        releaseModalEl.addEventListener('hidden.bs.modal', function () {
-            pendingWorkflowStatus = null;
         });
     }
 });

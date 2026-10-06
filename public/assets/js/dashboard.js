@@ -31,18 +31,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return s;
     }
 
-    function getBadgeClass(status) {
+    function getStatusClass(status) {
         const s = String(status || '').toLowerCase().trim();
         if (s === 'approved' || s === 'ready for release') {
-            return 'bg-success-subtle text-success';
+            return 'ready';
         } else if (s === 'pending') {
-            return 'bg-warning-subtle text-warning';
+            return 'pending';
+        } else if (s === 'processing') {
+            return 'processing';
         } else if (s === 'claimed' || s === 'released') {
-            return 'bg-info-subtle text-info';
-        } else if (s === 'rejected') {
-            return 'bg-danger-subtle text-danger';
+            return 'claimed';
+        } else if (s === 'rejected' || s === 'cancelled') {
+            return 'cancelled';
         }
-        return 'bg-secondary-subtle text-secondary';
+        return 'inactive';
     }
 
     function setRefreshingState(isRefreshing) {
@@ -139,33 +141,35 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const itemsHtml = requests.map(req => {
-            const badgeClass = getBadgeClass(req.status);
+        const rowsHtml = requests.map(req => {
+            const statusClass = getStatusClass(req.status);
             return `
-                <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center px-0 py-3">
-                    <div class="d-flex align-items-center mb-2 mb-sm-0">
-                        <div class="rounded p-2 bg-light border me-3">
-                            <i class="bi bi-file-earmark-text-fill fs-4 text-primary"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0 fw-semibold">${escapeHtml(req.document_name)}</h6>
-                            <small class="text-muted">
-                                Requested on ${formatDate(req.request_date)} &bull; Ref #REQ-${padZero(req.request_id)}
-                            </small>
-                        </div>
-                    </div>
-                    <div>
-                        <span class="badge rounded-pill px-3 py-2 ${badgeClass}">
+                <tr>
+                    <td class="fw-semibold heading-green">${escapeHtml(req.document_name)}</td>
+                    <td class="text-muted-soft">REQ-${padZero(req.request_id)}</td>
+                    <td class="text-muted-soft">${formatDate(req.request_date)}</td>
+                    <td>
+                        <span class="status-badge status-${statusClass}">
                             ${escapeHtml(req.status)}
                         </span>
-                    </div>
-                </div>
+                    </td>
+                </tr>
             `;
         }).join('');
 
         container.innerHTML = `
-            <div class="list-group list-group-flush" id="resident-requests-list">
-                ${itemsHtml}
+            <div class="table-responsive">
+                <table class="table table-brand align-middle mb-0" id="resident-requests-list">
+                    <thead>
+                        <tr>
+                            <th>Document Type</th>
+                            <th>Reference #</th>
+                            <th>Date Requested</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
             </div>
         `;
     }
@@ -187,25 +191,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const rowsHtml = requests.map(req => {
             const fullName = `${req.first_name || ''} ${req.last_name || ''}`.trim() || 'Anonymous';
-            const badgeClass = getBadgeClass(req.status);
+            const statusClass = getStatusClass(req.status);
             return `
                 <tr>
-                    <td class="fw-semibold text-muted">REQ-${padZero(req.request_id)}</td>
+                    <td class="fw-semibold heading-green">REQ-${padZero(req.request_id)}</td>
                     <td>
                         <div class="fw-semibold">${escapeHtml(fullName)}</div>
                     </td>
                     <td>${escapeHtml(req.document_name)}</td>
-                    <td><small>${escapeHtml(req.contact_number || 'N/A')}</small></td>
-                    <td><small>${formatDate(req.request_date)}</small></td>
+                    <td class="text-muted-soft"><small>${formatDate(req.request_date)}</small></td>
                     <td>
-                        <span class="badge rounded-pill px-3 py-2 ${badgeClass}">
+                        <span class="status-badge status-${statusClass}">
                             ${escapeHtml(req.status)}
                         </span>
-                    </td>
-                    <td class="text-end">
-                        <a href="${basePath}/staff/process-requests.php" class="btn btn-sm btn-outline-dark">
-                            Process
-                        </a>
                     </td>
                 </tr>
             `;
@@ -217,16 +215,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             container.innerHTML = `
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                    <table class="table table-brand align-middle mb-0">
+                        <thead>
                             <tr>
                                 <th>Ref #</th>
                                 <th>Resident</th>
                                 <th>Document Requested</th>
-                                <th>Contact</th>
                                 <th>Date</th>
                                 <th>Status</th>
-                                <th class="text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody id="staff-requests-tbody">
@@ -254,15 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const rowsHtml = requests.map(req => {
             const fullName = `${req.first_name || ''} ${req.last_name || ''}`.trim() || 'Anonymous';
-            const badgeClass = getBadgeClass(req.status);
+            const statusClass = getStatusClass(req.status);
             return `
                 <tr>
-                    <td class="fw-semibold text-muted">REQ-${padZero(req.request_id)}</td>
+                    <td class="fw-semibold heading-green">REQ-${padZero(req.request_id)}</td>
                     <td>${escapeHtml(fullName)}</td>
                     <td>${escapeHtml(req.document_name)}</td>
-                    <td><small>${formatDate(req.request_date)}</small></td>
+                    <td class="text-muted-soft"><small>${formatDate(req.request_date)}</small></td>
                     <td>
-                        <span class="badge rounded-pill px-3 py-2 ${badgeClass}">
+                        <span class="status-badge status-${statusClass}">
                             ${escapeHtml(req.status)}
                         </span>
                     </td>
@@ -276,8 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             container.innerHTML = `
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                    <table class="table table-brand align-middle mb-0">
+                        <thead>
                             <tr>
                                 <th>Ref #</th>
                                 <th>Resident Name</th>

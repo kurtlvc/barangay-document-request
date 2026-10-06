@@ -1,9 +1,7 @@
 <?php
 // Database connection settings.
-// In a real deployment, load these from environment variables instead of
-// hardcoding them here (e.g. getenv('DB_HOST')).
 
-$DB_HOST = '127.0.0.1:3306';
+$DB_HOST = '127.0.0.1:3307';
 $DB_NAME = 'barangay_system';
 $DB_USER = 'root';
 $DB_PASS = '';

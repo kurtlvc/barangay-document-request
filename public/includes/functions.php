@@ -7,10 +7,9 @@ function bdr_csrf_token()
     }
 }
 
-function bdr_requre_csrf()
+function bdr_require_csrf()
 {
-    // PHP validation
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
         $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
         if (!hash_equals($_SESSION['csrf_token'], $token)) {
             http_response_code(403);
@@ -109,7 +108,7 @@ function bdr_require_method(array $methods): void
 function bdr_require_write_csrf(): void
 {
     if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-        bdr_requre_csrf();
+        bdr_require_csrf();
     }
 }
 

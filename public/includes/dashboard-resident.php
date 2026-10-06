@@ -7,7 +7,7 @@ $isVerified = ($status === 'verified');
 <main class="resident-content flex-grow-1 overflow-auto p-3 p-lg-4">
 <div class="dashboard-resident">
     <!-- Verification Status Banner -->
-    <div class="alert <?= $isVerified ? 'alert-success bg-success-subtle text-success-emphasis border-success-subtle' : 'alert-warning bg-warning-subtle text-warning-emphasis border-warning-subtle' ?> d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm">
+    <div class="verify-banner d-flex align-items-center justify-content-between gap-3 mb-4 p-3 flex-wrap">
         <div class="d-flex align-items-center">
             <i class="bi <?= $isVerified ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill' ?> fs-3 me-3"></i>
             <div>
@@ -18,73 +18,65 @@ $isVerified = ($status === 'verified');
                 <small class="mb-0">
                     <?= $isVerified 
                         ? 'Your account is linked with your official barangay record. You can request documents online and track their status.' 
-                        : 'Your account is currently pending verification by barangay staff. You may still submit document requests for review.' ?>
+                        : 'Your account is currently pending verification by barangay admin. You can submit document requests after they verify your account.' ?>
                 </small>
             </div>
         </div>
-        <a href="<?= $basePath ?>/account-settings.php" class="btn btn-sm btn-outline-dark ms-3 text-nowrap">View Profile</a>
     </div>
 
-    <!-- Overview Metric Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm rounded-3 p-3 active-card h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-uppercase fw-semibold small mb-1">Total Requests</p>
-                        <h2 class="fw-bold mb-0" data-stat="total"><?= (int)($stats['total'] ?? 0) ?></h2>
+    <div class="stats-panel mb-4">
+        <div class="row g-0">
+            <div class="col-12 col-lg-4">
+                <div class="stat-card h-100 px-3 py-3 border-end">
+                    <p class="stat-card-header mb-2">Total Requests</p>
+                    <div class="d-flex align-items-end gap-2">
+                        <p class="stat-card-value stat-card-value-large" data-stat="total"><?= (int)($stats['total'] ?? 0) ?></p>
+                        <p class="stat-card-meta">requests</p>
                     </div>
-                    <i class="bi bi-folder2-open fs-1 opacity-50"></i>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm rounded-3 p-3 pending-card h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-uppercase fw-semibold small mb-1">Pending Review</p>
-                        <h2 class="fw-bold mb-0" data-stat="pending"><?= (int)($stats['pending'] ?? 0) ?></h2>
+            <div class="col-4 col-lg">
+                <div class="stat-card h-100 px-3 py-3 border-end">
+                    <p class="stat-card-header text-secondary mb-2">Pending Review</p>
+                    <div class="d-flex align-items-end gap-2">
+                        <p class="stat-card-value" data-stat="pending"><?= (int)($stats['pending'] ?? 0) ?></p>
+                        <p class="stat-card-meta">requests</p>
                     </div>
-                    <i class="bi bi-clock-history fs-1 opacity-50"></i>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm rounded-3 p-3 released-card h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-uppercase fw-semibold small mb-1">Ready for Release</p>
-                        <h2 class="fw-bold mb-0" data-stat="approved"><?= (int)($stats['approved'] ?? 0) ?></h2>
+            <div class="col-4 col-lg">
+                <div class="stat-card h-100 px-3 py-3 border-end">
+                    <p class="stat-card-header text-secondary mb-2">Ready for Release</p>
+                    <div class="d-flex align-items-end gap-2">
+                        <p class="stat-card-value" data-stat="approved"><?= (int)($stats['approved'] ?? 0) ?></p>
+                        <p class="stat-card-meta">documents</p>
                     </div>
-                    <i class="bi bi-check2-circle fs-1 opacity-50"></i>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 shadow-sm rounded-3 p-3 bg-light border text-secondary h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-uppercase fw-semibold small mb-1">Claimed</p>
-                        <h2 class="fw-bold mb-0" data-stat="released"><?= (int)($stats['released'] ?? 0) ?></h2>
+            <div class="col-4 col-lg">
+                <div class="stat-card h-100 px-3 py-3">
+                    <p class="stat-card-header text-secondary mb-2">Claimed</p>
+                    <div class="d-flex align-items-end gap-2">
+                        <p class="stat-card-value" data-stat="released"><?= (int)($stats['released'] ?? 0) ?></p>
+                        <p class="stat-card-meta">documents</p>
                     </div>
-                    <i class="bi bi-archive-fill fs-1 opacity-50"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Quick Action / CTA -->
-    <div class="card border-0 shadow-sm rounded-3 p-4 mb-4 bg-white">
+    <div class="quick-action-panel d-flex align-items-center justify-content-between gap-3 p-4 mb-4 flex-wrap">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
                 <h5 class="fw-bold mb-1">Need a Barangay Clearance or Certificate?</h5>
-                <p class="text-muted mb-0">Submit your request online to avoid queuing at the barangay hall.</p>
+                <p class="text-white-50 mb-0">Submit your request online to avoid queuing at the barangay hall.</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="<?= $basePath ?>/resident/new-request.php" class="btn btn-primary d-inline-flex align-items-center px-4">
+                <a href="<?= $basePath ?>/resident/new-request.php" class="btn btn-brand d-inline-flex align-items-center gap-2">
                     <i class="bi bi-plus-circle me-2"></i> Request a Document
                 </a>
-                <a href="<?= $basePath ?>/resident/my-requests.php" class="btn btn-outline-secondary d-inline-flex align-items-center">
+                <a href="<?= $basePath ?>/resident/my-requests.php" class="btn btn-outline-brand d-inline-flex align-items-center gap-2">
                     <i class="bi bi-list-ul me-2"></i> My Requests
                 </a>
             </div>
@@ -92,58 +84,63 @@ $isVerified = ($status === 'verified');
     </div>
 
     <!-- Recent Requests Section -->
-    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="panel-white p-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
                 <h5 class="fw-bold mb-0">Recent Document Requests</h5>
                 <small class="text-muted" id="dashboard-last-updated"></small>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" id="dashboard-refresh-btn" title="Refresh Requests">
+                <button type="button" class="btn btn-sm btn-outline-brand d-inline-flex align-items-center gap-1" id="dashboard-refresh-btn" title="Refresh Requests">
                     <i class="bi bi-arrow-clockwise"></i> <span>Refresh</span>
                 </button>
-                <a href="<?= $basePath ?>/resident/my-requests.php" class="small text-decoration-none">View All</a>
+                <a href="<?= $basePath ?>/resident/my-requests.php" class="view-link">View All</a>
             </div>
         </div>
 
         <div id="resident-recent-container">
             <?php if (!empty($recentRequests)): ?>
-                <div class="list-group list-group-flush" id="resident-requests-list">
+                <div class="table-responsive">
+                    <table class="table table-brand align-middle mb-0" id="resident-requests-list">
+                        <thead>
+                            <tr>
+                                <th>Document Type</th>
+                                <th>Reference #</th>
+                                <th>Date Requested</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                     <?php foreach ($recentRequests as $req): 
-                        $badgeClass = match(strtolower($req['status'])) {
-                            'approved', 'ready for release' => 'bg-success-subtle text-success',
-                            'pending' => 'bg-warning-subtle text-warning',
-                            'claimed', 'released' => 'bg-info-subtle text-info',
-                            'rejected' => 'bg-danger-subtle text-danger',
-                            default => 'bg-secondary-subtle text-secondary'
+                        $statusClass = match(strtolower($req['status'])) {
+                            'approved', 'ready for release' => 'ready',
+                            'pending' => 'pending',
+                            'processing' => 'processing',
+                            'claimed', 'released' => 'claimed',
+                            'rejected', 'cancelled' => 'cancelled',
+                            default => 'inactive'
                         };
                     ?>
-                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center px-0 py-3">
-                        <div class="d-flex align-items-center mb-2 mb-sm-0">
-                            <div class="rounded p-2 bg-light border me-3">
-                                <i class="bi bi-file-earmark-text-fill fs-4 text-primary"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8') ?></h6>
-                                <small class="text-muted">
-                                    Requested on <?= date('M d, Y', strtotime($req['request_date'])) ?> &bull; Ref #REQ-<?= str_pad($req['request_id'], 4, '0', STR_PAD_LEFT) ?>
-                                </small>
-                            </div>
-                        </div>
-                        <div>
-                            <span class="badge rounded-pill px-3 py-2 <?= $badgeClass ?>">
+                    <tr>
+                        <td class="fw-semibold heading-green"><?= htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="text-muted-soft">REQ-<?= str_pad($req['request_id'], 4, '0', STR_PAD_LEFT) ?></td>
+                        <td class="text-muted-soft"><?= date('M d, Y', strtotime($req['request_date'])) ?></td>
+                        <td>
+                            <span class="status-badge status-<?= $statusClass ?>">
                                 <?= htmlspecialchars($req['status'], ENT_QUOTES, 'UTF-8') ?>
                             </span>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
                     <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             <?php else: ?>
                 <div class="text-center py-5" id="resident-requests-empty">
                     <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
                     <h6 class="text-muted">No document requests yet</h6>
                     <p class="small text-muted mb-3">Your submitted document requests and status updates will appear here.</p>
-                    <a href="<?= $basePath ?>/resident/new-request.php" class="btn btn-sm btn-outline-primary">
+                    <a href="<?= $basePath ?>/resident/new-request.php" class="btn btn-outline-brand">
                         Submit your first request
                     </a>
                 </div>

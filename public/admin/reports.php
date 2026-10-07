@@ -136,7 +136,7 @@ $reportTo = date('Y-m-t');
     
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="adminToast" class="toast app-toast border-0 shadow" role="status" aria-live="polite" aria-atomic="true">
-            <div class="d-flex">
+            <div class="d-flex align-items-center gap-3 p-3">
             <span class="toast-check"><i class="bi bi-check-lg"></i></span>
                 <div class="toast-body"></div>
                 <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>

@@ -52,7 +52,7 @@ $accounts = $pdo->query("SELECT id, name, email, role, contact_number AS contact
                             $search = strtolower(implode(' ', [$account['name'], $account['email']]));
                         ?>
                             <tr data-user-id="<?= (int) $account['id'] ?>" data-search="<?= htmlspecialchars($search) ?>" data-role="<?= strtolower($account['role']) ?>" data-status="<?= strtolower($account['status']) ?>"
-                                data-name="<?= htmlspecialchars($account['name']) ?>" data-email="<?= htmlspecialchars($account['email']) ?>" data-contact="<?= htmlspecialchars($account['contact']) ?>">
+                                data-name="<?= htmlspecialchars($account['name']) ?>" data-email="<?= htmlspecialchars($account['email']) ?>" data-contact="<?= htmlspecialchars($account['contact'] ?? '') ?>">
                                 <td class="fw-semibold heading-green"><?= htmlspecialchars($account['name']) ?><br><small class="text-muted-soft fw-normal"><?= htmlspecialchars($account['email']) ?></small></td>
                                 <td><span class="badge text-bg-light border"><?= htmlspecialchars($account['role']) ?></span></td>
                                 <td class="text-muted-soft text-nowrap"><?= htmlspecialchars($account['contact'] ?? 'N/A') ?></td>
@@ -140,7 +140,8 @@ $accounts = $pdo->query("SELECT id, name, email, role, contact_number AS contact
 
         <div class="toast-container position-fixed bottom-0 end-0 p-3">
             <div id="adminToast" class="toast app-toast border-0 shadow" role="status">
-                <div class="d-flex">
+                <div class="d-flex align-items-center gap-3 p-3">
+                    <span class="toast-check"><i class="bi bi-check-lg"></i></span>
                     <div class="toast-body"></div>
                     <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>

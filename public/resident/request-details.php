@@ -10,7 +10,7 @@ $basePath = '..';
 $pageScripts = ['assets/js/request-details.js'];
 
 $requestId = filter_var($_GET['req'] ?? null, FILTER_VALIDATE_INT);
-$stmt = $pdo->prepare('SELECT q.request_id, q.request_date, q.status, q.remarks, q.purpose, d.document_name FROM requests q JOIN document_types d ON d.document_id = q.document_id WHERE q.request_id = ? AND q.resident_id = ?');
+$stmt = $pdo->prepare('SELECT q.request_id, q.request_date, q.status, q.remarks, q.purpose, d.document_name, d.fee, d.requirements FROM requests q JOIN document_types d ON d.document_id = q.document_id WHERE q.request_id = ? AND q.resident_id = ?');
 $stmt->execute([$requestId ?: 0, $_SESSION['resident_id'] ?? 0]);
 $request = $stmt->fetch();
 if ($request) {
@@ -28,18 +28,28 @@ if (!$request) {
 
 <?php include __DIR__ . '/../page-layout/header.php' ?>
     <main class="resident-content flex-grow-1 overflow-auto p-3 p-lg-4">
-        <a href="my-requests.php" class="back-to-details d-inline-flex align-items-center text-decoration-none heading-green mb-3"><i class="bi bi-arrow-left fs-4"></i></a>
+        <a href="my-requests.php" class="back-to-details d-inline-flex align-items-center text-decoration-none heading-green mb-3"><i class="bi bi-arrow-left fs-5"></i><span>Back</span></a>
 
         <div class="row g-4 mx-auto">
             <div class="col-lg-6">
                 <div class="panel detail-panel p-3 p-md-4 p-lg-5 h-100">
                     <h4 class="heading-green fw-bold mb-4">Request Info</h4>
 
+                    <p class="text-muted-soft mb-1">Reference No.</p>
+                    <p class="fw-bold heading-green mb-4">REQ-<?= str_pad((int) $request['request_id'], 4, '0', STR_PAD_LEFT) ?></p>
+
                     <p class="text-muted-soft mb-1">Document Type</p>
                     <p class="fw-bold heading-green mb-4"><?= htmlspecialchars($request['document_name']) ?></p>
 
-                    <p class="text-muted-soft mb-1">Purpose</p>
-                    <p class="mb-4"><?= htmlspecialchars($request['purpose'] ?? '') ?></p>
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        <p class="text-muted-soft mb-1">Purpose</p>
+                        <?php if ($request['status'] === 'Pending'): ?>
+                            <button type="button" class="btn btn-sm btn-outline-brand mb-1" data-bs-toggle="modal" data-bs-target="#editPurposeModal">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                    <p class="mb-4" id="requestPurposeText"><?= htmlspecialchars($request['purpose'] ?? '') ?></p>
 
                     <p class="text-muted-soft mb-1">Date Requested</p>
                     <p class="fw-bold heading-green mb-4"><?= htmlspecialchars(date('M j, Y', strtotime($request['request_date']))) ?></p>
@@ -68,11 +78,56 @@ if (!$request) {
             </div>
         </div>
 
+        <?php if (in_array(strtolower($request['status']), ['approved', 'ready for release'], true)):
+            $claimRequirements = array_values(array_filter(array_map('trim', explode(',', (string) ($request['requirements'] ?? '')))));
+            $claimFee = (float) ($request['fee'] ?? 0);
+        ?>
+            <div class="panel p-3 p-md-4 mt-4">
+                <h4 class="heading-green fw-bold mb-3"><i class="bi bi-collection me-2"></i>How to Claim</h4>
+                <p class="text-muted-soft mb-1">Reference No.</p>
+                <p class="fw-bold heading-green fs-5 mb-3">REQ-<?= str_pad((int) $request['request_id'], 4, '0', STR_PAD_LEFT) ?></p>
+                <p class="text-muted-soft mb-1">Where</p>
+                <p class="mb-3">Barangay Mamatid Hall, City of Cabuyao, Laguna · Mon–Fri, 8:00 AM – 5:00 PM</p>
+                <p class="text-muted-soft mb-1">Bring</p>
+                <?php if ($claimRequirements): ?>
+                    <ul class="mb-3">
+                        <?php foreach ($claimRequirements as $item): ?>
+                            <li><?= htmlspecialchars($item) ?></li>
+                        <?php endforeach; ?>
+                        <li>A valid ID</li>
+                    </ul>
+                <?php else: ?>
+                    <p class="mb-3">A valid ID</p>
+                <?php endif; ?>
+                <p class="text-muted-soft mb-1">Fee</p>
+                <p class="fw-bold mb-0" style="color: var(--gold);"><?= $claimFee > 0 ? '₱' . number_format($claimFee, 2) : 'No fee' ?></p>
+            </div>
+        <?php endif; ?>
+
         <?php if ($request['status'] === 'Pending'): ?>
             <div class="text-end mt-3 cancel-request-wrap">
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelRequestModal">
                     <i class="bi bi-x-circle me-1"></i> Cancel Request
                 </button>
+            </div>
+            <div class="modal fade" id="editPurposeModal" tabindex="-1" aria-labelledby="editPurposeTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold" id="editPurposeTitle">Edit Purpose</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <label for="editPurposeText" class="form-label">Purpose of Request</label>
+                            <textarea class="form-control" id="editPurposeText" rows="3" maxlength="1000"><?= htmlspecialchars($request['purpose'] ?? '') ?></textarea>
+                            <p class="text-danger small mt-2 mb-0" id="editPurposeError" role="alert" hidden></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep Current</button>
+                            <button type="button" class="btn btn-brand" id="confirmEditPurpose" data-request-id="<?= (int) $request['request_id'] ?>">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal fade" id="cancelRequestModal" tabindex="-1" aria-labelledby="cancelRequestTitle" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">

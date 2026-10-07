@@ -91,5 +91,25 @@ $basePath = bdr_base_path();
             </form>
         </div>
     </div>
+
+    <?php if ($role === 'resident'): ?>
+    <div class="modal fade" id="reverifyConfirmModal" tabindex="-1" aria-labelledby="reverifyConfirmTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="reverifyConfirmTitle">Save changes?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">You changed your <strong>name or address</strong>. Your account will go back to <strong>pending verification</strong> and you won't be able to submit new document requests until the barangay verifies it again.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep editing</button>
+                    <button type="button" class="btn btn-brand" id="reverifyConfirmButton">Save anyway</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 </main>
 <?php $pageScripts = ['assets/js/account-settings.js']; include __DIR__ . '/page-layout/footer.php' ?>

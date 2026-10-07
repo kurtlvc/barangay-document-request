@@ -54,6 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.navbar .dropdown-menu strong').forEach((el) => { el.textContent = name; });
     };
 
+    // Snapshot of the verified identity, taken on load. Used to decide whether
+    // the re-verification confirmation modal is needed.
+    let originalIdentity = null;
+    let wasVerified = false;
+
     // ── Load profile ─────────────────────────────────────────────────
     (async () => {
         const submit = $('personalSubmit');
@@ -67,6 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 $('editLastName').value = profile.last_name || '';
                 $('editContact').value = profile.contact_number || '';
                 $('editAddress').value = profile.address || '';
+                originalIdentity = {
+                    first_name: (profile.first_name || '').trim(),
+                    last_name: (profile.last_name || '').trim(),
+                    address: (profile.address || '').trim()
+                };
+                wasVerified = profile.resident_status === 'verified';
                 submit.disabled = false;
             } else {
                 $('editName').value = profile.name || '';
@@ -75,6 +86,51 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert($('personalAlert'), error.message, 'danger');
         }
     })();
+
+    const identityChanged = (payload) => isResident && wasVerified && originalIdentity
+        && (payload.first_name !== originalIdentity.first_name
+            || payload.last_name !== originalIdentity.last_name
+            || payload.address !== originalIdentity.address);
+
+    async function savePersonal(payload, btn) {
+        const alertEl = $('personalAlert');
+        setBusy(btn, true);
+        try {
+            const result = await request('PATCH', payload);
+            refreshDisplayedName(payload.name);
+            if (result.reverification) {
+                wasVerified = false;
+                const statusInput = $('accountStatus');
+                if (statusInput) statusInput.value = 'Pending Verification';
+                showAlert(alertEl, result.message || 'Profile updated. Your account is pending re-verification.', 'warning');
+            } else {
+                showAlert(alertEl, result.message || 'Profile updated.', 'success');
+            }
+            originalIdentity = isResident ? {
+                first_name: payload.first_name,
+                last_name: payload.last_name,
+                address: payload.address
+            } : originalIdentity;
+        } catch (error) {
+            showAlert(alertEl, error.message, 'danger');
+        } finally {
+            setBusy(btn, false);
+        }
+    }
+
+    // Confirmation modal: only for verified residents changing name/address.
+    const reverifyModalEl = $('reverifyConfirmModal');
+    const reverifyModal = reverifyModalEl && window.bootstrap
+        ? bootstrap.Modal.getOrCreateInstance(reverifyModalEl)
+        : null;
+    let pendingPersonalSave = null;
+    $('reverifyConfirmButton')?.addEventListener('click', () => {
+        const pending = pendingPersonalSave;
+        pendingPersonalSave = null;
+        reverifyModal?.hide();
+        if (pending) savePersonal(pending.payload, pending.btn);
+    });
+    reverifyModalEl?.addEventListener('hidden.bs.modal', () => { pendingPersonalSave = null; });
 
     // ── Personal information ─────────────────────────────────────────
     personalForm.addEventListener('submit', async (event) => {
@@ -115,16 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
             : {name: $('editName').value.trim()};
 
         const btn = $('personalSubmit');
-        setBusy(btn, true);
-        try {
-            const result = await request('PATCH', payload);
-            refreshDisplayedName(payload.name);
-            showAlert(alertEl, result.message || 'Profile updated.', 'success');
-        } catch (error) {
-            showAlert(alertEl, error.message, 'danger');
-        } finally {
-            setBusy(btn, false);
+        if (identityChanged(payload)) {
+            pendingPersonalSave = {payload, btn};
+            reverifyModal?.show();
+            return;
         }
+        savePersonal(payload, btn);
     });
 
     // ── Sign in and security ─────────────────────────────────────────

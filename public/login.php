@@ -31,17 +31,18 @@ if (isset($_SESSION['user_id'])) {
     <nav class="navbar navbar-expand-lg p-3 fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand fw-semibold" href="index.php"> <img src="logo.png" alt="DokuBayan"> DokuBayan</a>
+            <button type="button" class="btn ms-auto" id="themeToggle" aria-label="Toggle theme" title="Toggle theme"><i class="bi bi-moon-fill"></i></button>
         </div>
     </nav>
     <main class="form-page row">
-        <section class="intro-panel col-lg-6">
+        <section class="intro-panel col-lg-5">
             <div class="container px-xl-5 ">
                 <p class="service-label badge rounded-pill">ONLINE DOCUMENT REQUEST SERVICE OF BRGY. MAMATID</p>
                 <h1 class="intro fw-bold">Request barangay documents without <br> the long wait.</h1>
                 <p class="sub-intro">Submit document requests online, follow their status, and know when your document is ready for release.</p>
             </div>    
         </section>
-        <section class="form-panel col-lg-6 px-xl-5 justify-content-center">
+        <section class="form-panel col-lg-7 px-xl-5 justify-content-center">
             <div class="form-container p-5 mt-5">
                 <nav class="form-tabs p-1 bg-body-secondary border rounded-3">
                     <div class="nav nav-pills nav-fill gap-1" id="nav-tab" role="tablist">
@@ -78,7 +79,7 @@ if (isset($_SESSION['user_id'])) {
                             <p class="sub-intro">Already have an account? Click the Login above to sign in.</p>
                             <h2 class="fw-bold m-4">Create Resident Account</h2>
                         </div>
-                        <form action="" class="register-form m-3" id="registerForm">
+                        <form action="" class="register-form m-3" id="registerForm" novalidate>
                             <div class="d-flex mb-4" id="stepIndicators">
                                 <div class="step-item active" id="s1">
                                     <div class="step-circle">1</div>
@@ -154,7 +155,7 @@ if (isset($_SESSION['user_id'])) {
     </main>
     <div class="toast-container position-fixed top-0 end-0 p-3">
         <div id="loginToast" class="toast align-items-center border-0" role="status" aria-live="polite" aria-atomic="true">
-            <div class="d-flex">
+            <div class="d-flex align-items-center gap-2 p-2">
                 <div class="toast-body" id="loginToastMessage"></div>
                 <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>

@@ -61,6 +61,8 @@ $residents = $pdo->query("SELECT r.resident_id, CONCAT(r.first_name, ' ', r.last
                                 <td class="text-end text-nowrap">
                                     <?php if ($resident['status'] === 'Unverified'): ?>
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-icon" data-verify-resident aria-label="Verify <?= htmlspecialchars($resident['name']) ?>" title="Verify" data-bs-toggle="tooltip"><i class="bi bi-person-check-fill"></i></button>
+                                    <?php else: ?>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-icon" data-unverify-resident aria-label="Move <?= htmlspecialchars($resident['name']) ?> back to pending" title="Move back to pending" data-bs-toggle="tooltip"><i class="bi bi-person-dash"></i></button>
                                     <?php endif; ?>
                                     <button type="button" class="btn btn-sm btn-outline-secondary action-icon" data-edit-resident aria-label="Edit <?= htmlspecialchars($resident['name']) ?>" title="Edit" data-bs-toggle="tooltip"><i class="bi bi-pencil"></i></button>
                                 </td>
@@ -126,7 +128,7 @@ $residents = $pdo->query("SELECT r.resident_id, CONCAT(r.first_name, ' ', r.last
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="mb-0">Are you sure to verify <strong id="verifyResidentName"></strong>? Verifying will allow a resident to request a document.</p>
+                        <p class="mb-0"><span id="verifyResidentPrefix">Are you sure to verify</span> <strong id="verifyResidentName"></strong>? <span id="verifyResidentExtra">Verifying will allow a resident to request a document.</span></p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -137,7 +139,7 @@ $residents = $pdo->query("SELECT r.resident_id, CONCAT(r.first_name, ' ', r.last
         </div>
         <div class="toast-container position-fixed bottom-0 end-0 p-3">
             <div id="adminToast" class="toast app-toast border-0 shadow" role="status">
-                <div class="d-flex">
+                <div class="d-flex align-items-center gap-3 p-3">
                     <span class="toast-check"><i class="bi bi-check-lg"></i></span>
                     <div class="toast-body"></div>
                     <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>

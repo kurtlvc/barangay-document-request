@@ -190,4 +190,35 @@ document.addEventListener('DOMContentLoaded', function () {
             advanceRequestWorkflow(nextStatus);
         });
     }
+
+    /* ---------------- Request details: reject with required reason ---------------- */
+    var rejectButton = document.getElementById('confirmRejectRequest');
+    var rejectInput = document.getElementById('rejectRemarks');
+    var rejectError = document.getElementById('rejectRequestError');
+    if (rejectButton && rejectInput && rejectError) {
+        rejectButton.addEventListener('click', function () {
+            var remarks = rejectInput.value.trim();
+            if (remarks === '') {
+                rejectError.textContent = 'A reason is required when rejecting a request.';
+                rejectError.hidden = false;
+                rejectInput.focus();
+                return;
+            }
+            rejectButton.disabled = true;
+            rejectError.hidden = true;
+            const requestId = requestTimeline ? requestTimeline.dataset.requestId : null;
+            fetch('../api/requests.php', {method: 'PATCH', credentials: 'same-origin', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''}, body: JSON.stringify({request_id: requestId, status: 'Rejected', remarks: remarks})})
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        if (!response.ok || data.status !== 'ok') throw new Error(data.message || 'Could not reject the request.');
+                    });
+                })
+                .then(function () { window.location.reload(); })
+                .catch(function (error) {
+                    rejectError.textContent = error.message;
+                    rejectError.hidden = false;
+                    rejectButton.disabled = false;
+                });
+        });
+    }
 });

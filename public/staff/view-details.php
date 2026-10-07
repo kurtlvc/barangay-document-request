@@ -9,7 +9,7 @@ $basePath = '..';
 
 require_once __DIR__ . "/../config/database.php";
 $requestId = filter_var($_GET["req"] ?? null, FILTER_VALIDATE_INT);
-$stmt = $pdo->prepare("SELECT q.request_id, CONCAT(r.first_name, \" \", r.last_name) AS name, u.email, r.contact_number AS contact, r.address, d.document_name AS document, q.purpose, q.request_date, q.status FROM requests q JOIN residents r ON r.resident_id = q.resident_id LEFT JOIN users u ON u.id = r.user_id JOIN document_types d ON d.document_id = q.document_id WHERE q.request_id = ?");
+$stmt = $pdo->prepare("SELECT q.request_id, CONCAT(r.first_name, \" \", r.last_name) AS name, u.email, r.contact_number AS contact, r.address, d.document_name AS document, q.purpose, q.remarks, q.request_date, q.status FROM requests q JOIN residents r ON r.resident_id = q.resident_id LEFT JOIN users u ON u.id = r.user_id JOIN document_types d ON d.document_id = q.document_id WHERE q.request_id = ?");
 $stmt->execute([$requestId ?: 0]); $row = $stmt->fetch();
 $request = $row ? ["id" => (int) $row["request_id"], "number" => "REQ-" . $row["request_id"], "name" => $row["name"], "email" => $row["email"] ?? "", "contact" => $row["contact"], "address" => $row["address"], "document" => $row["document"], "purpose" => $row["purpose"] ?? "", "date" => date("M j, Y", strtotime($row["request_date"])), "status" => strtolower($row["status"]) === "ready for release" ? "ready" : (strtolower($row["status"]) === "released" ? "claimed" : strtolower($row["status"]))] : null;
 if (!$request) http_response_code(404);
@@ -21,6 +21,7 @@ $statusLabels = [
     'ready' => 'Ready for Release',
     'claimed' => 'Released',
     'cancelled' => 'Cancelled',
+    'rejected' => 'Rejected',
 ];
 $statusStages = ['pending', 'processing', 'ready', 'claimed'];
 $stageIcons = ['bi-hourglass-split', 'bi-gear-fill', 'bi-patch-check-fill', 'bi-box-seam-fill'];
@@ -97,6 +98,11 @@ $actionLabels = [
                             </div>
                             <?php if ($request['status'] === 'cancelled'): ?>
                                 <p class="mb-0 text-muted-soft">This request was cancelled by the resident.</p>
+                            <?php elseif ($request['status'] === 'rejected'): ?>
+                                <p class="mb-1 fw-semibold">This request was rejected.</p>
+                                <?php if (!empty($request['remarks'])): ?>
+                                    <p class="mb-0 text-muted-soft">Reason: <?= htmlspecialchars($request['remarks']) ?></p>
+                                <?php endif; ?>
                             <?php else: ?>
                             <div id="requestTimeline" data-request-id="<?= (int) $request["id"] ?>" class="request-timeline mb-4" data-stage="<?= (int) $currentStage ?>">
                                 <?php foreach (['Pending', 'Processing', 'Approved', 'Released'] as $index => $step): ?>
@@ -119,11 +125,36 @@ $actionLabels = [
                                         <i class="bi <?= $request['status'] === 'pending' ? 'bi-play-fill' : ($request['status'] === 'processing' ? 'bi-check-lg' : 'bi-box-arrow-up-right') ?> me-1" aria-hidden="true"></i>
                                         <?= htmlspecialchars($actionLabels[$request['status']]) ?>
                                     </button>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectRequestModal">
+                                        <i class="bi bi-x-circle me-1" aria-hidden="true"></i>Reject
+                                    </button>
                                 <?php elseif ($request['status'] === 'ready'): ?>
                                     <a class="btn btn-brand" href="release-management.php">Open Release Management</a>
                                 <?php else: ?>
                                     <span class="status-badge status-claimed"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Complete</span>
                                 <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
+                            <?php if (isset($actionLabels[$request['status']])): ?>
+                            <div class="modal fade" id="rejectRequestModal" tabindex="-1" aria-labelledby="rejectRequestTitle" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title fw-bold" id="rejectRequestTitle">Reject Request?</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="text-muted-soft small mb-2">The resident will see this reason on their request. This cannot be undone.</p>
+                                            <label for="rejectRemarks" class="form-label">Reason for rejection <span class="text-danger">*</span></label>
+                                            <textarea class="form-control" id="rejectRemarks" rows="3" maxlength="1000" placeholder="e.g. Requirements do not match the stated purpose."></textarea>
+                                            <p class="text-danger small mt-2 mb-0" id="rejectRequestError" role="alert" hidden></p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep Request</button>
+                                            <button type="button" class="btn btn-danger" id="confirmRejectRequest">Reject Request</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <?php endif; ?>
                         </section>

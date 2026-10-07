@@ -30,6 +30,7 @@
                 <div class="navbar-nav align-items-end">
                     <a href="#aboutpage" class="nav-item nav-link">About</a>
                     <a href="#howpage" class="nav-item nav-link">How it works</a>
+                    <button type="button" class="btn ms-lg-2" id="themeToggle" aria-label="Toggle theme" title="Toggle theme"><i class="bi bi-moon-fill"></i></button>
                 </div>
                 <div class="d-flex d-lg-none flex-column gap-2 mt-3 w-100">
                     <a class="btn btn-brand" href="login.php#register-pane">Register as Resident</a>
@@ -73,7 +74,7 @@
             <div class="about-img container col-md-5">
                 <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan Logo" class="img-fluid pt-5 ps-5">
             </div>
-            <div class="col-lg-6 m-5 pt-5 align-items-center">
+            <div class="col-lg-6 p-4 p-lg-5 align-items-center">
                 <h2 class="fw-bold">ABOUT THE SYSTEM</h2>
                 <p class="description my-5">Making barangay document request service easier for everyone.</p>
                 <p class="description bp-5 mb-5"> Our online document request system provides residents with a convenient way to request and track barangay documents.</p>
@@ -152,23 +153,13 @@
             <hr>
             <section class="copyright row px-5 ">
                 <p class="col-lg-9 sub-text"><i class="bi-c-circle"></i> 2026 Brgy. Mamatid - Local Government Unit. All rights reserved</p>
-                <a href="privacy-policy" class="col sub-text">Privacy Policy</a>
-                <a href="terms-of-use" class="col sub-text">Terms of Use</a>
+                <a href="privacy-policy.php" class="col sub-text">Privacy Policy</a>
+                <a href="terms-of-use.php" class="col sub-text">Terms of Use</a>
             </section>
             
         </div>
     </footer>
     <script src="<?= htmlspecialchars($basePath) ?>/assets/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.querySelectorAll('#navbarCollapse .nav-link').forEach(function(link) {
-            link.addEventListener('click', function() {
-                const navbar = document.getElementById('navbarCollapse');
-        
-                const collapse = bootstrap.Collapse.getInstance(navbar) || new bootstrap.Collapse(navbar, { toggle: false });
-        
-                collapse.hide();
-            });
-        });
-    </script>
+    <script src="<?= htmlspecialchars($basePath) ?>/assets/js/script.js" defer></script>
 </body>
 </html>

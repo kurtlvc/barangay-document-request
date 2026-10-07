@@ -87,10 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function renderAccountRow(values, existingRow = null) {
             const row = existingRow || document.createElement('tr');
+            const rawContact = (values.contact ?? '').trim();
             if (values.id) row.dataset.userId = values.id;
             row.dataset.name = values.name;
             row.dataset.email = values.email;
-            row.dataset.contact = values.contact;
+            row.dataset.contact = rawContact;
             row.dataset.role = values.role.toLowerCase();
             row.dataset.status = values.status.toLowerCase();
             row.dataset.search = `${values.name} ${values.email}`.toLowerCase();
@@ -101,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             roleBadge.className = 'badge text-bg-light border';
             roleBadge.textContent = values.role;
             roleCell.append(roleBadge);
-            row.append(roleCell, makeCell(values.contact, 'text-muted-soft text-nowrap'));
+            row.append(roleCell, makeCell(rawContact || 'N/A', 'text-muted-soft text-nowrap'));
             row.append(makeCell(''));
             row.cells[3].append(makeStatusBadge(values.status, values.status === 'Active' ? 'status-claimed' : 'status-inactive'));
             const actions = makeCell('', 'text-end text-nowrap');
@@ -274,14 +275,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
         const verifyModal = bootstrap.Modal.getOrCreateInstance(verifyModalElement);
-        const verifyResidentName = document.getElementById('verifyResidentName');
-        const confirmVerifyButton = document.getElementById('confirmVerifyResident');
+        const verifyModalTitle = document.getElementById('verifyResidentModalTitle');
+        const verifyResidentPrefix = document.getElementById('verifyResidentPrefix');
+        const verifyResidentExtra = document.getElementById('verifyResidentExtra');
+        const verifyConfirmButton = document.getElementById('confirmVerifyResident');
         const nameInput = document.getElementById('residentName');
         const emailInput = document.getElementById('residentEmail');
         const contactInput = document.getElementById('residentContact');
         const addressInput = document.getElementById('residentAddress');
         let currentPage = 1;
-        let pendingVerificationRow = null;
+        let pendingStatusRow = null;
+        let pendingStatusMode = null; // 'verify' | 'unverify'
+
+        function openStatusModal(row, mode) {
+            pendingStatusRow = row;
+            pendingStatusMode = mode;
+            document.getElementById('verifyResidentName').textContent = row.dataset.name;
+            if (mode === 'verify') {
+                verifyModalTitle.textContent = 'Verify Resident';
+                verifyResidentPrefix.textContent = 'Are you sure to verify';
+                verifyResidentExtra.textContent = 'Verifying will allow a resident to request a document.';
+                verifyConfirmButton.textContent = 'Yes, Verify Resident';
+            } else {
+                verifyModalTitle.textContent = 'Move Back to Pending';
+                verifyResidentPrefix.textContent = 'Are you sure to unverify';
+                verifyResidentExtra.textContent = 'They will not be able to submit new requests until verified again.';
+                verifyConfirmButton.textContent = 'Yes, Move to Pending';
+            }
+            verifyModal.show();
+        }
 
         function filterResidents() {
             const query = (document.getElementById('residentSearch')?.value || '').trim().toLowerCase();
@@ -307,9 +329,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const verifyButton = event.target.closest('[data-verify-resident]');
             const verifyRow = verifyButton?.closest('tr[data-name]');
             if (verifyRow && verifyRow.dataset.status === 'unverified') {
-                pendingVerificationRow = verifyRow;
-                verifyResidentName.textContent = verifyRow.dataset.name;
-                verifyModal.show();
+                openStatusModal(verifyRow, 'verify');
+                return;
+            }
+
+            const unverifyButton = event.target.closest('[data-unverify-resident]');
+            const unverifyRow = unverifyButton?.closest('tr[data-name]');
+            if (unverifyRow && unverifyRow.dataset.status === 'verified') {
+                openStatusModal(unverifyRow, 'unverify');
                 return;
             }
 
@@ -324,20 +351,30 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.show();
         });
 
-        confirmVerifyButton.addEventListener('click', async () => {
-            if (!pendingVerificationRow || pendingVerificationRow.dataset.status !== 'unverified') return;
-            const residentName = pendingVerificationRow.dataset.name;
-            try { await apiRequest('../api/residents.php', 'PATCH', {action: 'set-status', resident_id: pendingVerificationRow.dataset.residentId, status: 'verified'}); }
+        verifyConfirmButton.addEventListener('click', async () => {
+            const row = pendingStatusRow;
+            const toVerified = pendingStatusMode === 'verify';
+            if (!row || !pendingStatusMode) return;
+            if ((row.dataset.status !== 'unverified') === toVerified) return;
+            const residentName = row.dataset.name;
+            try { await apiRequest('../api/residents.php', 'PATCH', {action: 'set-status', resident_id: row.dataset.residentId, status: toVerified ? 'verified' : 'pending'}); }
             catch (error) { showAdminToast(error.message, 'danger'); return; }
-            pendingVerificationRow.dataset.status = 'verified';
-            pendingVerificationRow.cells[4].replaceChildren(makeStatusBadge('Verified', 'status-claimed'));
-            pendingVerificationRow.querySelector('[data-verify-resident]')?.remove();
-            pendingVerificationRow = null;
+            row.dataset.status = toVerified ? 'verified' : 'unverified';
+            row.cells[4].replaceChildren(makeStatusBadge(toVerified ? 'Verified' : 'Unverified', toVerified ? 'status-claimed' : 'status-pending'));
+            if (toVerified) {
+                row.querySelector('[data-verify-resident]')?.remove();
+            } else {
+                row.querySelector('[data-unverify-resident]')?.remove();
+                const verifyBtn = makeActionButton('bi-person-check-fill', `Verify ${residentName}`, 'data-verify-resident');
+                row.cells[5].prepend(verifyBtn, document.createTextNode(' '));
+            }
+            pendingStatusRow = null;
+            pendingStatusMode = null;
             filterResidents();
             verifyModal.hide();
-            showAdminToast(`${residentName}'s account was verified.`);
+            showAdminToast(toVerified ? `${residentName}'s account was verified.` : `${residentName}'s account was moved back to pending.`);
         });
-        verifyModalElement.addEventListener('hidden.bs.modal', () => { pendingVerificationRow = null; });
+        verifyModalElement.addEventListener('hidden.bs.modal', () => { pendingStatusRow = null; pendingStatusMode = null; });
 
         form.addEventListener('submit', async event => {
             event.preventDefault();
@@ -397,18 +434,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function renderDocumentRow(values, existingRow = null) {
             const row = existingRow || document.createElement('tr');
+            const rawRequirements = (values.requirements ?? '').trim();
             if (values.id) row.dataset.documentId = values.id;
             if (values.number) row.dataset.number = values.number;
             row.dataset.name = values.name;
             row.dataset.fee = values.fee;
-            row.dataset.requirements = values.requirements;
+            row.dataset.requirements = rawRequirements;
             row.dataset.turnaround = values.turnaround;
             row.dataset.status = values.status.toLowerCase();
-            row.dataset.search = `${values.name} ${values.requirements}`.toLowerCase();
+            row.dataset.search = `${values.name} ${rawRequirements}`.toLowerCase();
             row.replaceChildren();
             row.append(makeCell(values.name, 'fw-semibold heading-green'));
             row.append(makeCell(`₱${Number(values.fee).toFixed(2)}`, 'text-nowrap'));
-            row.append(makeCell(values.requirements, 'text-muted-soft'));
+            row.append(makeCell(rawRequirements || 'N/A', 'text-muted-soft'));
             row.append(makeCell(`${values.turnaround} business day${Number(values.turnaround) === 1 ? '' : 's'}`, 'text-muted-soft text-nowrap'));
             const statusCell = makeCell('');
             statusCell.append(makeStatusBadge(values.status, values.status === 'Active' ? 'status-claimed' : 'status-inactive'));

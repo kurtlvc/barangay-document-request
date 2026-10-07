@@ -13,6 +13,7 @@ $notifications = [];
 $statusLabels = [
     'pending' => 'Pending', 'processing' => 'Processing',
     'ready' => 'Ready for Release', 'claimed' => 'Claimed', 'cancelled' => 'Cancelled',
+    'rejected' => 'Rejected',
 ];
 
 $requests = $pdo->query("SELECT CONCAT(r.first_name, ' ', r.last_name) AS name, CONCAT('REQ-', q.request_id) AS ref, q.request_id, d.document_name AS doc, DATE_FORMAT(q.request_date, '%b %e, %Y') AS date, CASE LOWER(q.status) WHEN 'ready for release' THEN 'ready' WHEN 'released' THEN 'claimed' ELSE LOWER(q.status) END AS status FROM requests q JOIN residents r ON r.resident_id = q.resident_id JOIN document_types d ON d.document_id = q.document_id ORDER BY q.request_date DESC, q.request_id DESC")->fetchAll();

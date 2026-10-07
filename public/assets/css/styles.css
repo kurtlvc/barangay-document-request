@@ -501,7 +501,7 @@ footer, .footer-header {
     font-size: 1.35rem;
 }
 .profile-card-info { min-width: 0; }
-.profile-card-name { margin: 0 0 0.35rem; color: var(--white); font-size: 0.9rem; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.profile-card-name { margin: 0rem 0rem; color: var(--white); font-size: 0.9rem; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
 .profile-card-role { display: inline-block; margin: 0; color: var(--white); font-size: 0.7rem; line-height: 1.3; }
 .account-settings-main { min-height: 0; }
 
@@ -570,7 +570,7 @@ footer, .footer-header {
 .table-brand tbody tr:hover td { background-color: rgba(15, 69, 48, 0.04); }
 .view-link,
 .resident-content a:not(.btn):not(.dropdown-item) { color: var(--dark-green) !important; font-weight: 700; text-decoration: none; transition: color 0.15s ease, opacity 0.15s ease; }
-.view-link { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--dark-green); border-radius: 0.45rem; padding: 0.35rem 0.65rem; }
+.view-link { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; border: 1px solid var(--dark-green); border-radius: 0.6rem; padding: 0.5rem 0.85rem; font-size: 0.9rem; background-color: rgba(15, 69, 48, 0.06); }
 .view-link:hover,
 .resident-content a:not(.btn):not(.dropdown-item):hover { color: var(--light-green-hover) !important; opacity: 0.8; }
 .action-icon, .page-arrow { color: var(--dark-green); border-color: var(--dark-green); }
@@ -844,7 +844,7 @@ footer, .footer-header {
 .status-inactive { color: var(--light-gray); background: #eceeed; }
 .status-ready { color: var(--white); background: var(--dark-green); }
 .status-claimed, .status-released { color: var(--dark-green); background: #dcebe2; }
-.status-cancelled { color: var(--danger); background: #f6dedc; }
+.status-cancelled, .status-rejected { color: var(--danger); background: #f6dedc; }
 
 .chart-panel svg { display: block; }
 .chart-panel .chart-caption { font-size: 0.78rem; color: var(--light-gray); }
@@ -873,7 +873,9 @@ footer, .footer-header {
     margin-right: 4px;
 }
 
-.nav-item.nav-link {
+/* Dashboard icon buttons only — scoped to .app-content so text links on the
+   landing page navbar keep their normal sizing. */
+.app-content .navbar .nav-item.nav-link {
     position: relative;
     color: var(--dark-green);
     /* Minimum 44×44px tap target (WCAG 2.5.5) */
@@ -886,15 +888,21 @@ footer, .footer-header {
     border-radius: 0.6rem;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
-.nav-item.nav-link i {
+.app-content .navbar .nav-item.nav-link i {
     font-size: 1.2rem;
     line-height: 1;
     pointer-events: none;
 }
-.nav-item.nav-link:hover,
-.nav-item.nav-link:focus-visible {
+.app-content .navbar .nav-item.nav-link:hover,
+.app-content .navbar .nav-item.nav-link:focus-visible {
     color: var(--dark-green);
     background-color: rgba(15, 69, 48, 0.08);
+}
+
+/* Landing page navbar text links */
+.navbar-menu-container .navbar-nav .nav-link {
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
 }
 
 .dot {
@@ -1198,7 +1206,7 @@ body[data-theme="dark"] .stat-card-header,
 body[data-theme="dark"] .stat-card-value,
 body[data-theme="dark"] .panel-menu-head,
 body[data-theme="dark"] .navbar a,
-body[data-theme="dark"] .nav-item.nav-link { color: var(--accent-green) !important; }
+body[data-theme="dark"] .app-content .navbar .nav-item.nav-link { color: var(--accent-green) !important; }
 body[data-theme="dark"] .stat-card,
 body[data-theme="dark"] .stat-card-header,
 body[data-theme="dark"] .stat-card-value,
@@ -1267,7 +1275,7 @@ body[data-theme="dark"] .btn-outline-brand:hover {
     background-color: var(--accent-green);
     border-color: var(--accent-green);
 }
-body[data-theme="dark"] .view-link { color: var(--accent-green) !important; border-color: #668873; }
+body[data-theme="dark"] .view-link { color: var(--accent-green) !important; border-color: #8aa892; background-color: rgba(159, 211, 177, 0.12); }
 body[data-theme="dark"] .btn-outline-secondary,
 body[data-theme="dark"] .btn-outline-brand { color: #cbd8cf; border-color: #687a6e; }
 body[data-theme="dark"] .segmented-control .btn.active { color: #17211a; background-color: var(--accent-green); border-color: var(--accent-green); }
@@ -1594,7 +1602,7 @@ body[data-theme="dark"] .resident-content {
 
     #dashboard-refresh-btn,
     .view-link {
-        min-height: 2.5rem;
+        min-height: 2.75rem;
     }
 
     .verify-banner {
@@ -1656,8 +1664,8 @@ body[data-theme="dark"] #dashboardUserMenu:hover,
 body[data-theme="dark"] #dashboardUserMenu:focus-visible {
     color: var(--accent-green) !important;
 }
-body[data-theme="dark"] .nav-item.nav-link:hover,
-body[data-theme="dark"] .nav-item.nav-link:focus-visible,
+body[data-theme="dark"] .app-content .navbar .nav-item.nav-link:hover,
+body[data-theme="dark"] .app-content .navbar .nav-item.nav-link:focus-visible,
 body[data-theme="dark"] #dashboardUserMenu:hover,
 body[data-theme="dark"] #dashboardUserMenu:focus-visible {
     background-color: rgba(255, 255, 255, 0.08);
@@ -1669,3 +1677,114 @@ html[data-theme="dark"] {
     background-color: #151a17;
     color-scheme: dark;
 }
+
+/* Request details timeline: hard-coded light-mode colours were unreadable in dark mode */
+body[data-theme="dark"] .step-title { color: var(--text-dark); }
+body[data-theme="dark"] .status-step.is-current .step-title { color: var(--accent-green); }
+body[data-theme="dark"] .status-step .step-circle { background-color: #3a453e; }
+body[data-theme="dark"] .status-step.is-complete .step-circle,
+body[data-theme="dark"] .status-step.is-current .step-circle { background-color: var(--dark-green); }
+body[data-theme="dark"] .status-step:not(:last-child)::after { background-color: #3a453e; }
+
+/* Consistent action sizing in the Recent Document Requests header (all screens) */
+#dashboard-refresh-btn,
+.panel-white .view-link { min-height: 2.5rem; }
+
+/* Back button: visible bordered affordance with a 44px tap target */
+.back-to-details {
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem 0.5rem 0.75rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 0.6rem;
+    background-color: var(--surface);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Hamburger: Bootstrap's toggler icon is dark-on-transparent, invisible on
+   the dark navbar — invert it in dark mode */
+body[data-theme="dark"] .navbar-toggler { border-color: var(--border-strong); }
+body[data-theme="dark"] .navbar-toggler-icon { filter: invert(1) grayscale(1); }
+
+/* Dark mode buttons: white text/borders instead of dark green. The
+   `.resident-content a:not(...)` link rule is high-specificity + !important,
+   so these selectors are scoped to beat it. */
+body[data-theme="dark"] .resident-content .view-link,
+body[data-theme="dark"] .resident-content .back-to-details,
+body[data-theme="dark"] .btn-outline-brand,
+body[data-theme="dark"] .btn-outline-secondary,
+body[data-theme="dark"] .action-icon,
+body[data-theme="dark"] .page-arrow,
+body[data-theme="dark"] .sort-caret {
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+body[data-theme="dark"] .resident-content a.view-link:hover,
+body[data-theme="dark"] .resident-content a.back-to-details:hover {
+    color: #fff !important;
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Dark mode: request card titles were dark green on dark background */
+body[data-theme="dark"] .request-card-title { color: #fff; }
+
+/* Landing page mobile: kill horizontal scrollbar. Bootstrap rows carry -12px
+   side margins; nested directly under <body> / each other they bleed past the
+   viewport. The advantages strip also stays a non-wrapping row on phones. */
+html { overflow-x: clip; }
+@supports not (overflow: clip) {
+    html { overflow-x: hidden; }
+}
+.landing-page.row,
+.about-page.row,
+.advantages.row,
+.advantages .row,
+footer .copyright.row {
+    margin-inline: 0;
+}
+/* Login/register page has the same row-under-body structure */
+.form-page.row {
+    margin-inline: 0;
+}
+@media (max-width: 767.98px) {
+    .advantages {
+        flex-wrap: wrap;
+        row-gap: 1rem;
+    }
+}
+
+/* Theme toggle on landing + login navbars (outside .app-content, so it needs
+   its own icon-button styling to match the dashboard) */
+#themeToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border-radius: 0.6rem;
+    color: var(--dark-green);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+#themeToggle i {
+    font-size: 1.2rem;
+    line-height: 1;
+    pointer-events: none;
+}
+#themeToggle:hover,
+#themeToggle:focus-visible {
+    color: var(--dark-green);
+    background-color: rgba(15, 69, 48, 0.08);
+}
+body[data-theme="dark"] #themeToggle { color: var(--accent-green); }
+body[data-theme="dark"] #themeToggle:hover,
+body[data-theme="dark"] #themeToggle:focus-visible { background-color: rgba(255, 255, 255, 0.08); }
+
+/* Login/register in dark mode: Bootstrap's bg-body-secondary tab bar and
+   muted hints don't adapt on their own */
+body[data-theme="dark"] .form-tabs { background-color: var(--surface-raised) !important; }
+body[data-theme="dark"] .form-tabs .nav-link { color: var(--accent-green); }
+body[data-theme="dark"] .form-tabs .nav-link:hover { background-color: rgba(255, 255, 255, 0.06); }
+body[data-theme="dark"] .form-text { color: var(--light-gray); }

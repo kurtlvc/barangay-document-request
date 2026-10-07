@@ -153,6 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${escapeHtml(req.status)}
                         </span>
                     </td>
+                    <td class="text-end">
+                        <a href="${basePath}/resident/request-details.php?req=${encodeURIComponent(req.request_id)}" class="view-link">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                    </td>
                 </tr>
             `;
         }).join('');
@@ -169,6 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>REQ-${padZero(req.request_id)}</span>
                         <span>${formatDate(req.request_date)}</span>
                     </div>
+                    <a href="${basePath}/resident/request-details.php?req=${encodeURIComponent(req.request_id)}" class="view-link request-card-link">
+                        <i class="bi bi-eye"></i> View details
+                    </a>
                 </div>
             `;
         }).join('');
@@ -182,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <th>Reference #</th>
                             <th>Date Requested</th>
                             <th>Status</th>
+                            <th class="text-end"><span class="visually-hidden">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>${rowsHtml}</tbody>

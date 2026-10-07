@@ -108,6 +108,7 @@ $isVerified = ($status === 'verified');
                                 <th>Reference #</th>
                                 <th>Date Requested</th>
                                 <th>Status</th>
+                                <th class="text-end"><span class="visually-hidden">Actions</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -124,7 +125,8 @@ $isVerified = ($status === 'verified');
                         $docName = htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8');
                         $reqDate = date('M d, Y', strtotime($req['request_date']));
                         $statusText = htmlspecialchars($req['status'], ENT_QUOTES, 'UTF-8');
-                        $requestCards .= '<div class="request-card"><div class="request-card-top"><span class="request-card-title">' . $docName . '</span><span class="status-badge status-' . $statusClass . '">' . $statusText . '</span></div><div class="request-card-meta"><span>' . $refNo . '</span><span>' . $reqDate . '</span></div></div>';
+                        $detailUrl = $basePath . '/resident/request-details.php?req=' . (int) $req['request_id'];
+                        $requestCards .= '<div class="request-card"><div class="request-card-top"><span class="request-card-title">' . $docName . '</span><span class="status-badge status-' . $statusClass . '">' . $statusText . '</span></div><div class="request-card-meta"><span>' . $refNo . '</span><span>' . $reqDate . '</span></div><a href="' . $detailUrl . '" class="view-link request-card-link"><i class="bi bi-eye"></i> View details</a></div>';
                     ?>
                     <tr>
                         <td class="fw-semibold heading-green"><?= htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -134,6 +136,11 @@ $isVerified = ($status === 'verified');
                             <span class="status-badge status-<?= $statusClass ?>">
                                 <?= htmlspecialchars($req['status'], ENT_QUOTES, 'UTF-8') ?>
                             </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="<?= $basePath ?>/resident/request-details.php?req=<?= (int) $req['request_id'] ?>" class="view-link">
+                                <i class="bi bi-eye"></i> View
+                            </a>
                         </td>
                     </tr>
                     <?php endforeach; ?>

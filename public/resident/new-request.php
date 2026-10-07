@@ -15,7 +15,7 @@ $documentTypes = $pdo->query('SELECT document_id, document_name, fee, processing
     <main class="resident-content flex-grow-1 overflow-auto p-3 p-lg-4">
         <div class="row g-4 mx-auto">
     <div class="col-lg-7">
-        <div class="panel request-form-panel p-4 p-lg-5">
+        <div class="panel request-form-panel p-3 p-md-4 p-lg-5">
             <span class="eyebrow-badge p-1 rounded">NEW REQUEST</span>
             <h3 class="heading-green fw-bold mt-3 mb-4">Request Details</h3>
 
@@ -42,7 +42,7 @@ $documentTypes = $pdo->query('SELECT document_id, document_name, fee, processing
 
                 <p id="formHelperText" class="helper-text mb-3">Choose a type of document to continue</p>
 
-                <button type="submit" id="submitRequestBtn" class="btn btn-brand" disabled>
+                <button type="submit" id="submitRequestBtn" class="btn btn-brand w-100 w-sm-auto" disabled>
                     Submit Request
                 </button>
             </form>
@@ -50,7 +50,7 @@ $documentTypes = $pdo->query('SELECT document_id, document_name, fee, processing
     </div>
 
     <div class="col-lg-5">
-        <div class="panel document-details-panel p-4 p-lg-5">
+        <div class="panel document-details-panel p-3 p-md-4 p-lg-5">
 
             <div id="detailPanelEmpty" class="empty-state">
                 <i class="bi bi-file-earmark-text"></i>

@@ -31,7 +31,7 @@ $roleBadge = [
     'admin' => 'Barangay Administrator',
 ];
 ?>
-<aside class="sidebar col-lg-3 d-none d-lg-flex vh-100 overflow-hidden">  
+<aside class="sidebar col-lg-3 d-none d-lg-flex app-shell overflow-hidden">  
     <div class="sidebar-content p-3 d-flex flex-column h-100">
         <div class="sidebar-header">
             <a class="navbar-brand fw-semibold m-3" href="<?= htmlspecialchars($basePath) ?>/"><img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan"> DokuBayan </a>
@@ -62,7 +62,7 @@ $roleBadge = [
 </aside>
 
 <!-- Mobile -->
-<div class="offcanvas offcanvas-start d-lg-none d-flex flex-column vh-100" tabindex="-1" id="sidebar">
+<div class="offcanvas offcanvas-start d-lg-none d-flex flex-column app-shell" tabindex="-1" id="sidebar">
     <div class="offcanvas-header d-flex justify-content-between">
         <a class="navbar-brand fw-semibold m-3" href="<?= htmlspecialchars($basePath) ?>/"><img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan"> DokuBayan </a>
         <button type="button" class="btn text-light" data-bs-dismiss="offcanvas" aria-label="Close"><i class="bi-x-lg"></i></button>

@@ -24,8 +24,10 @@ if (isset($_SESSION['user_id'])) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/styles.css">
     <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
+    <script>try{if(localStorage.getItem('dokubayan-theme')==='dark')document.documentElement.dataset.theme='dark';}catch(e){}</script>
 </head>
 <body>
+    <script>if(document.documentElement.dataset.theme==='dark')document.body.dataset.theme='dark';</script>
     <nav class="navbar navbar-expand-lg p-3 fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand fw-semibold" href="index.php"> <img src="logo.png" alt="DokuBayan"> DokuBayan</a>
@@ -60,7 +62,9 @@ if (isset($_SESSION['user_id'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="passwordInput" class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control" id="passwordInput" placeholder="Enter your password" autocomplete="current-password" required>
+                                <div class="password-field">
+                                    <input type="password" name="password" class="form-control" id="passwordInput" placeholder="Enter your password" autocomplete="current-password" required>
+                                </div>
                             </div>
                             <div class="mb-3 d-flex justify-content-end">
                                 <a href="#" class="forgotpass">Forgot Password?</a>
@@ -69,7 +73,7 @@ if (isset($_SESSION['user_id'])) {
                             <p id="loginMessage" class="visually-hidden" role="status" aria-live="polite"></p>
                         </form>
                     </div>
-                    <div class="tab-pane" id="register-pane" role="tabpanel" aria-labelledby="nav-register-tab" tabindex="0">
+                    <div class="tab-pane fade" id="register-pane" role="tabpanel" aria-labelledby="nav-register-tab" tabindex="0">
                         <div class="form-heading mt-3 text-center">
                             <p class="sub-intro">Already have an account? Click the Login above to sign in.</p>
                             <h2 class="fw-bold m-4">Create Resident Account</h2>
@@ -78,36 +82,37 @@ if (isset($_SESSION['user_id'])) {
                             <div class="d-flex mb-4" id="stepIndicators">
                                 <div class="step-item active" id="s1">
                                     <div class="step-circle">1</div>
-                                    <div class="small mt-1 fw-semibold">Personal Information</div>
+                                    <div class="step-label small mt-1 fw-semibold">Personal</div>
                                 </div>
                                 <div class="step-item" id="s2">
                                     <div class="step-circle">2</div>
-                                    <div class="small mt-1 fw-semibold">Address</div>
+                                    <div class="step-label small mt-1 fw-semibold">Address</div>
                                 </div>
                                 <div class="step-item" id="s3">
                                     <div class="step-circle">3</div>
-                                    <div class="small mt-1 fw-semibold">Account Credentials</div>
+                                    <div class="step-label small mt-1 fw-semibold">Credentials</div>
                                 </div>
                             </div>
                             <section class="form-step active" id="step1" >
                                 <div class="row mb-3">
                                     <div class="col-md-6 mb-2">
                                         <label for="firstNameInput" class="form-label">First Name</label>
-                                        <input type="text" name="first_name" class="form-control" id="firstNameInput" placeholder="Juan" required>
+                                        <input type="text" name="first_name" class="form-control" id="firstNameInput" placeholder="Juan" autocomplete="given-name" required>
                                     </div>
                                     <div class="col-md-6 mb-2">
                                         <label for="lastNameInput" class="form-label">Last Name</label>
-                                        <input type="text" name="last_name" class="form-control" id="lastNameInput" placeholder="Dela Cruz" required>
+                                        <input type="text" name="last_name" class="form-control" id="lastNameInput" placeholder="Dela Cruz" autocomplete="family-name" required>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-6 mb-2">
                                         <label for="registerEmailInput" class="form-label">Email address</label>
-                                        <input type="email" name="email" class="form-control" id="registerEmailInput" placeholder="jdelacruz@email.com" required>
+                                        <input type="email" name="email" class="form-control" id="registerEmailInput" placeholder="jdelacruz@email.com" autocomplete="email" required>
                                     </div>
                                     <div class="col-md-6 mb-2">
                                         <label for="contactnumInput" class="form-label">Contact Number</label>
-                                        <input type="tel" name="contact_number" class="form-control" id="contactnumInput" placeholder="09171234567" required>
+                                        <input type="tel" name="contact_number" class="form-control" id="contactnumInput" placeholder="09171234567" pattern="(09|\+639)\d{9}" autocomplete="tel" required>
+                                        <div class="form-text">PH mobile number (e.g. 09171234567)</div>
                                     </div>
                                 </div>
                             </section>
@@ -125,11 +130,15 @@ if (isset($_SESSION['user_id'])) {
                                 <div class="row mb-3">
                                     <div class="col-md-6 mb-3">
                                         <label for="registerPasswordInput" class="form-label">Password</label>
-                                        <input type="password" name="password" class="form-control" id="registerPasswordInput" placeholder="Min. 8 characters" minlength="8" required>
+                                        <div class="password-field">
+                                            <input type="password" name="password" class="form-control" id="registerPasswordInput" placeholder="Min. 8 characters" minlength="8" autocomplete="new-password" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="confirmpassInput" class="form-label">Confirm Password</label>
-                                        <input type="password" name="confirm_password" class="form-control" id="confirmpassInput" placeholder="Re-enter password" minlength="8" required>
+                                        <div class="password-field">
+                                            <input type="password" name="confirm_password" class="form-control" id="confirmpassInput" placeholder="Re-enter password" minlength="8" autocomplete="new-password" required>
+                                        </div>
                                     </div>
                                 </div>
                             </section>

@@ -5,17 +5,17 @@ $userRole = htmlspecialchars($_SESSION['role'] ?? ($role ?? 'resident'), ENT_QUO
 $notifications = $notifications ?? [];
 $unreadCount = count(array_filter($notifications, fn($n) => !empty($n['unread'])));
 ?>
-<nav class="navbar navbar-expand-lg w-100 me-3">
+<nav class="navbar navbar-expand-lg w-100">
     <button class="navbar-toggler d-lg-none mx-2 border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="nav-heading ms-3">
         <h1 class="nav-header fw-bold my-0"><?= htmlspecialchars($pageTitle ?? 'Dashboard') ?></h1>
-        <small class="text-secondary text-break">
+        <small class="text-secondary text-break d-none d-sm-block">
             <?= htmlspecialchars($pageDescription ?? '') ?>
         </small>
     </div>
-    <div class="d-flex align-items-center gap-4 position-relative ms-auto">
+    <div class="d-flex align-items-center gap-1 gap-sm-4 position-relative ms-auto">
         <button type="button" class="btn nav-item nav-link" id="themeToggle" aria-label="Toggle theme" title="Toggle theme"><i class="bi bi-moon-fill"></i></button>
         <div class="dropdown">
             <button class="btn nav-item nav-link" data-bs-toggle="dropdown" aria-label="Notifications">
@@ -36,10 +36,10 @@ $unreadCount = count(array_filter($notifications, fn($n) => !empty($n['unread'])
             </div>
         </div>
         <div class="dropdown">
-            <button class="btn nav-link dropdown-toggle me-4 p-0" type="button" id="dashboardUserMenu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="User menu">
+            <button class="btn nav-link dropdown-toggle nav-user-toggle p-0" type="button" id="dashboardUserMenu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="User menu">
                 <i class="bi bi-person-fill"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end me-4" aria-labelledby="dashboardUserMenu">
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dashboardUserMenu">
                 <li class="px-3 py-1">
                     <strong class="d-block text-truncate"><?= $userName ?></strong>
                     <small class="text-muted"><?= ucfirst($userRole) ?></small>

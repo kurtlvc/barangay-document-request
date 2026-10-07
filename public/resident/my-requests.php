@@ -25,7 +25,7 @@ $requests = $stmt->fetchAll();
             <a href="new-request.php" class="btn btn-outline-brand">Request a Document</a>
         </div>
     <?php else: ?>
-        <div class="table-responsive">
+        <div class="table-responsive d-none d-md-block">
             <table class="table table-brand mb-0">
                 <thead>
                     <tr>
@@ -61,6 +61,24 @@ $requests = $stmt->fetchAll();
                     <?php endforeach; ?>
                 </tbody>
             </table>
+        </div>
+        <div class="request-card-list d-md-none">
+            <?php foreach ($requests as $req): $status = strtolower($req['status']);
+                $badgeClass = $status === 'ready for release' ? 'ready' : ($status === 'released' ? 'claimed' : $status); ?>
+            <div class="request-card">
+                <div class="request-card-top">
+                    <span class="request-card-title"><?= htmlspecialchars($req['document_name']) ?></span>
+                    <span class="status-badge status-<?= htmlspecialchars($badgeClass) ?>"><?= htmlspecialchars(ucfirst($req['status'])) ?></span>
+                </div>
+                <div class="request-card-meta">
+                    <span>REQ-<?= (int) $req['request_id'] ?></span>
+                    <span><?= htmlspecialchars(date('M j, Y', strtotime($req['request_date']))) ?></span>
+                </div>
+                <a href="request-details.php?req=<?= (int) $req['request_id'] ?>" class="view-link request-card-link">
+                    <i class="bi bi-eye"></i> View details
+                </a>
+            </div>
+            <?php endforeach; ?>
         </div>
     <?php endif; ?>
 </div>

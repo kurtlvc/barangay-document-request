@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
                     <h6 class="text-muted">No document requests yet</h6>
                     <p class="small text-muted mb-3">Your submitted document requests and status updates will appear here.</p>
-                    <a href="${basePath}/resident/new-request.php" class="btn btn-sm btn-outline-primary">
+                    <a href="${basePath}/resident/new-request.php" class="btn btn-outline-brand">
                         Submit your first request
                     </a>
                 </div>
@@ -157,8 +157,24 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
+        const cardsHtml = requests.map(req => {
+            const statusClass = getStatusClass(req.status);
+            return `
+                <div class="request-card">
+                    <div class="request-card-top">
+                        <span class="request-card-title">${escapeHtml(req.document_name)}</span>
+                        <span class="status-badge status-${statusClass}">${escapeHtml(req.status)}</span>
+                    </div>
+                    <div class="request-card-meta">
+                        <span>REQ-${padZero(req.request_id)}</span>
+                        <span>${formatDate(req.request_date)}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
         container.innerHTML = `
-            <div class="table-responsive">
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-brand align-middle mb-0" id="resident-requests-list">
                     <thead>
                         <tr>
@@ -171,6 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tbody>${rowsHtml}</tbody>
                 </table>
             </div>
+            <div class="request-card-list d-md-none">${cardsHtml}</div>
         `;
     }
 

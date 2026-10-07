@@ -9,7 +9,7 @@ $isVerified = ($status === 'verified');
     <!-- Verification Status Banner -->
     <div class="verify-banner d-flex align-items-center justify-content-between gap-3 mb-4 p-3 flex-wrap">
         <div class="d-flex align-items-center">
-            <i class="bi <?= $isVerified ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill' ?> fs-3 me-3"></i>
+            <i class="bi <?= $isVerified ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill' ?> fs-3 me-3 flex-shrink-0"></i>
             <div>
                 <h6 class="fw-bold mb-1">
                     <?= $isVerified ? 'Verified Resident Profile' : 'Resident Profile Pending Verification' ?>
@@ -66,13 +66,13 @@ $isVerified = ($status === 'verified');
     </div>
 
     <!-- Quick Action / CTA -->
-    <div class="quick-action-panel d-flex align-items-center justify-content-between gap-3 p-4 mb-4 flex-wrap">
+    <div class="quick-action-panel d-flex align-items-center justify-content-between gap-3 p-3 p-md-4 mb-4 flex-wrap">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
                 <h5 class="fw-bold mb-1">Need a Barangay Clearance or Certificate?</h5>
                 <p class="text-white-50 mb-0">Submit your request online to avoid queuing at the barangay hall.</p>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2 quick-action-buttons">
                 <a href="<?= $basePath ?>/resident/new-request.php" class="btn btn-brand d-inline-flex align-items-center gap-2">
                     <i class="bi bi-plus-circle me-2"></i> Request a Document
                 </a>
@@ -84,9 +84,9 @@ $isVerified = ($status === 'verified');
     </div>
 
     <!-- Recent Requests Section -->
-    <div class="panel-white p-4">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
+    <div class="panel-white p-3 p-md-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <div class="me-auto">
                 <h5 class="fw-bold mb-0">Recent Document Requests</h5>
                 <small class="text-muted" id="dashboard-last-updated"></small>
             </div>
@@ -100,7 +100,7 @@ $isVerified = ($status === 'verified');
 
         <div id="resident-recent-container">
             <?php if (!empty($recentRequests)): ?>
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-brand align-middle mb-0" id="resident-requests-list">
                         <thead>
                             <tr>
@@ -111,7 +111,7 @@ $isVerified = ($status === 'verified');
                             </tr>
                         </thead>
                         <tbody>
-                    <?php foreach ($recentRequests as $req): 
+                    <?php $requestCards = ''; foreach ($recentRequests as $req): 
                         $statusClass = match(strtolower($req['status'])) {
                             'approved', 'ready for release' => 'ready',
                             'pending' => 'pending',
@@ -120,6 +120,11 @@ $isVerified = ($status === 'verified');
                             'rejected', 'cancelled' => 'cancelled',
                             default => 'inactive'
                         };
+                        $refNo = 'REQ-' . str_pad($req['request_id'], 4, '0', STR_PAD_LEFT);
+                        $docName = htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8');
+                        $reqDate = date('M d, Y', strtotime($req['request_date']));
+                        $statusText = htmlspecialchars($req['status'], ENT_QUOTES, 'UTF-8');
+                        $requestCards .= '<div class="request-card"><div class="request-card-top"><span class="request-card-title">' . $docName . '</span><span class="status-badge status-' . $statusClass . '">' . $statusText . '</span></div><div class="request-card-meta"><span>' . $refNo . '</span><span>' . $reqDate . '</span></div></div>';
                     ?>
                     <tr>
                         <td class="fw-semibold heading-green"><?= htmlspecialchars($req['document_name'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -135,6 +140,7 @@ $isVerified = ($status === 'verified');
                         </tbody>
                     </table>
                 </div>
+                <div class="request-card-list d-md-none"><?= $requestCards ?></div>
             <?php else: ?>
                 <div class="text-center py-5" id="resident-requests-empty">
                     <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>

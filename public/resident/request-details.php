@@ -32,7 +32,7 @@ if (!$request) {
 
         <div class="row g-4 mx-auto">
             <div class="col-lg-6">
-                <div class="panel detail-panel p-4 p-lg-5 h-100">
+                <div class="panel detail-panel p-3 p-md-4 p-lg-5 h-100">
                     <h4 class="heading-green fw-bold mb-4">Request Info</h4>
 
                     <p class="text-muted-soft mb-1">Document Type</p>
@@ -52,7 +52,7 @@ if (!$request) {
             </div>
 
             <div class="col-lg-6">
-                <div class="panel detail-panel p-4 p-lg-5 h-100">
+                <div class="panel detail-panel p-3 p-md-4 p-lg-5 h-100">
                     <h4 class="heading-green fw-bold mb-4">Status History</h4>
 
                     <?php foreach ($history as $index => $step): $isCurrent = $index === array_key_last($history) && strcasecmp($step['status'], $request['status']) === 0; ?>
@@ -69,7 +69,7 @@ if (!$request) {
         </div>
 
         <?php if ($request['status'] === 'Pending'): ?>
-            <div class="text-end mt-3">
+            <div class="text-end mt-3 cancel-request-wrap">
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelRequestModal">
                     <i class="bi bi-x-circle me-1"></i> Cancel Request
                 </button>

@@ -14,8 +14,10 @@
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap-icons/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/styles.css">
+    <script>try{if(localStorage.getItem('dokubayan-theme')==='dark')document.documentElement.dataset.theme='dark';}catch(e){}</script>
 </head>
 <body>
+    <script>if(document.documentElement.dataset.theme==='dark')document.body.dataset.theme='dark';</script>
     <nav class="navbar navbar-expand-lg p-3 fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand fw-semibold" href="<?= htmlspecialchars($basePath) ?>/index.php"> <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan"> DokuBayan</a>
@@ -28,6 +30,10 @@
                 <div class="navbar-nav align-items-end">
                     <a href="#aboutpage" class="nav-item nav-link">About</a>
                     <a href="#howpage" class="nav-item nav-link">How it works</a>
+                </div>
+                <div class="d-flex d-lg-none flex-column gap-2 mt-3 w-100">
+                    <a class="btn btn-brand" href="login.php#register-pane">Register as Resident</a>
+                    <a class="btn btn-outline-brand" href="login.php">Login</a>
                 </div>
             </div>
         </div>

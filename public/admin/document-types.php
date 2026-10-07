@@ -51,7 +51,7 @@ $documents = $pdo->query("SELECT document_id, document_number, document_name AS 
                             <tr data-document-id="<?= (int) $document['document_id'] ?>" data-number="<?= htmlspecialchars($document['document_number']) ?>" data-search="<?= htmlspecialchars($search) ?>" data-status="<?= strtolower($document['status']) ?>" data-name="<?= htmlspecialchars($document['name']) ?>" data-fee="<?= htmlspecialchars($document['fee']) ?>" data-requirements="<?= htmlspecialchars($document['requirements'] ?? '') ?>" data-turnaround="<?= (int) $document['turnaround_days'] ?>">
                                 <td class="fw-semibold heading-green"><?= htmlspecialchars($document['name']) ?></td>
                                 <td class="text-nowrap">₱<?= number_format((float) $document['fee'], 2) ?></td>
-                                <td class="text-muted-soft"><?= htmlspecialchars($document['requirements']) ?></td>
+                                <td class="text-muted-soft"><?= htmlspecialchars($document['requirements'] ?? 'N/A') ?></td>
                                 <td class="text-muted-soft text-nowrap"><?= (int) $document['turnaround_days'] ?> business day<?= (int) $document['turnaround_days'] === 1 ? '' : 's' ?></td>
                                 <td><span class="status-badge <?= $document['status'] === 'Active' ? 'status-claimed' : 'status-inactive' ?>"><?= htmlspecialchars($document['status']) ?></span></td>
                                 <td class="text-end text-nowrap"><button type="button" class="btn btn-sm btn-outline-secondary action-icon" data-edit-document aria-label="Edit <?= htmlspecialchars($document['name']) ?>" title="Edit" data-bs-toggle="tooltip"><i class="bi bi-pencil"></i></button> 

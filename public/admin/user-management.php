@@ -55,7 +55,7 @@ $accounts = $pdo->query("SELECT id, name, email, role, contact_number AS contact
                                 data-name="<?= htmlspecialchars($account['name']) ?>" data-email="<?= htmlspecialchars($account['email']) ?>" data-contact="<?= htmlspecialchars($account['contact']) ?>">
                                 <td class="fw-semibold heading-green"><?= htmlspecialchars($account['name']) ?><br><small class="text-muted-soft fw-normal"><?= htmlspecialchars($account['email']) ?></small></td>
                                 <td><span class="badge text-bg-light border"><?= htmlspecialchars($account['role']) ?></span></td>
-                                <td class="text-muted-soft text-nowrap"><?= htmlspecialchars($account['contact']) ?></td>
+                                <td class="text-muted-soft text-nowrap"><?= htmlspecialchars($account['contact'] ?? 'N/A') ?></td>
                                 <td><span class="status-badge <?= $account['status'] === 'Active' ? 'status-claimed' : 'status-inactive' ?>"><?= htmlspecialchars($account['status']) ?></span></td>
                                 <td class="text-end text-nowrap">
                                     <button type="button" class="btn btn-sm btn-outline-secondary action-icon" data-edit-account aria-label="Edit <?= htmlspecialchars($account['name']) ?>" title="Edit" data-bs-toggle="tooltip"><i class="bi bi-pencil"></i></button>

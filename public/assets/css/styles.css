@@ -245,6 +245,71 @@ footer a:focus-visible {
     white-space: nowrap;
 }
 
+/* Password strength bar */
+.password-strength-bar {
+    height: 5px;
+    background: var(--border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.password-strength-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+.password-strength-text {
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+/* ── Password field wrapper (toggle + input side-by-side) ────────────
+   .password-field is a flex row: input grows, button is fixed-width.
+   This completely avoids overlap with Bootstrap's is-valid/is-invalid
+   background-image checkmark, which only appears on the INPUT itself.
+   ─────────────────────────────────────────────────────────────────── */
+.password-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.password-field .form-control {
+    /* Reserve right space for the toggle button */
+    padding-right: 2.75rem;
+    /* Remove Bootstrap's own validation icon so our toggle isn't covered */
+    background-image: none !important;
+    padding-right: 2.75rem !important;
+}
+.password-toggle-btn {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--light-gray);
+    padding: 0.25rem;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 4;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.375rem;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+.password-toggle-btn:hover,
+.password-toggle-btn:focus-visible {
+    color: var(--dark-green);
+    background-color: rgba(15, 69, 48, 0.07);
+    outline: none;
+}
+
 .form-label {
     text-transform: uppercase;
 }
@@ -808,23 +873,68 @@ footer, .footer-header {
     margin-right: 4px;
 }
 
-.nav-item.nav-link { 
-    position: relative; 
-    color: var(--dark-green); 
+.nav-item.nav-link {
+    position: relative;
+    color: var(--dark-green);
+    /* Minimum 44×44px tap target (WCAG 2.5.5) */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border-radius: 0.6rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
-.nav-item.nav-link:hover { 
-    color: var(--light-green-hover); 
+.nav-item.nav-link i {
+    font-size: 1.2rem;
+    line-height: 1;
+    pointer-events: none;
+}
+.nav-item.nav-link:hover,
+.nav-item.nav-link:focus-visible {
+    color: var(--dark-green);
+    background-color: rgba(15, 69, 48, 0.08);
 }
 
 .dot {
     position: absolute;
-    top: 2px;
-    right: -2px;
+    top: 6px;
+    right: 6px;
     width: 9px;
     height: 9px;
     border-radius: 50%;
     background: var(--danger);
     border: 2px solid #fff;
+    pointer-events: none;
+}
+
+/* User dropdown button — same 44px tap target, no caret clutter */
+#dashboardUserMenu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    margin-right: 0 !important;
+    border-radius: 0.6rem;
+    color: var(--dark-green);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+#dashboardUserMenu i {
+    font-size: 1.25rem;
+    line-height: 1;
+    pointer-events: none;
+}
+#dashboardUserMenu::after {
+    /* hide Bootstrap's default dropdown caret on the icon button */
+    display: none;
+}
+#dashboardUserMenu:hover,
+#dashboardUserMenu:focus-visible {
+    color: var(--dark-green);
+    background-color: rgba(15, 69, 48, 0.08);
 }
 
 .panel-menu {
@@ -1010,8 +1120,8 @@ footer, .footer-header {
         flex: 0 0 auto;
     }
 
-    .navbar > .position-relative .dropdown-toggle.me-4 {
-        margin-right: 0.25rem !important;
+    .navbar > .position-relative .nav-user-toggle {
+        margin-right: 0.25rem;
     }
 }
 
@@ -1299,3 +1409,263 @@ body[data-theme="dark"] .resident-content {
     border-radius: 0.45rem;
 }
 
+
+/* =======================================================================
+   MOBILE RESPONSIVE — login / register page
+   ======================================================================= */
+
+/* ── Small screens (≤ 991px, below Bootstrap's lg breakpoint) ────────── */
+@media (max-width: 991.98px) {
+
+    /* Hide the decorative green intro panel on the login/register page only.
+       The landing page's intro panel holds the Register / Login buttons and
+       must stay visible on mobile. */
+    .form-page > .intro-panel {
+        display: none !important;
+    }
+
+    /* Full-width form panel */
+    .form-panel {
+        min-height: 100svh;
+        width: 100%;
+        max-width: 100%;
+        justify-content: center;
+        padding-top: 5rem; /* clear fixed navbar */
+        padding-bottom: 2rem;
+    }
+
+    /* Shrink container padding from p-5 → comfortable mobile padding */
+    .form-panel .form-container {
+        padding: 1.5rem !important;
+    }
+
+    /* Slightly smaller tab font */
+    .form-tabs .nav-link {
+        font-size: 0.95rem;
+    }
+
+    /* Tighten form heading */
+    .form-heading h2 {
+        font-size: 1.5rem;
+        margin: 0.75rem !important;
+    }
+    .form-heading p {
+        font-size: 0.85rem;
+    }
+
+    /* Stack the two-col rows in step 1 & 3 vertically */
+    #step1 .row > [class*="col-md-6"],
+    #step3 .row > [class*="col-md-6"] {
+        width: 100%;
+    }
+
+    /* Make register-actions buttons flexible instead of fixed-width */
+    .register-actions .btn {
+        flex: 1 1 auto;
+        min-height: 3rem;
+    }
+    .register-actions {
+        gap: 0.75rem;
+    }
+
+    /* Step indicator labels — tighter font to avoid wrapping */
+    .step-label {
+        font-size: 0.7rem !important;
+    }
+}
+
+/* ── Extra-small screens (≤ 575px) ──────────────────────────────────── */
+@media (max-width: 575.98px) {
+
+    .form-panel .form-container {
+        padding: 1.25rem !important;
+    }
+
+    .btn-login {
+        min-height: 3rem;
+    }
+
+    /* Hide step labels entirely — the numbered circles are enough */
+    .step-label {
+        display: none;
+    }
+
+    /* Slightly bigger circles for tap targets */
+    #stepIndicators .step-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    /* Street address placeholder is very long — scale down font */
+    #streetaddInput {
+        font-size: 0.85rem;
+    }
+}
+
+
+/* =======================================================================
+   MOBILE RESPONSIVE — resident pages
+   ======================================================================= */
+
+/* Dynamic viewport height so mobile browser bars don't clip the layout */
+.app-shell {
+    height: 100vh;
+    height: 100dvh;
+}
+
+.nav-user-toggle {
+    margin-right: 1.5rem;
+}
+
+.navbar .dropdown-menu.dropdown-menu-end {
+    margin-right: 0;
+}
+
+/* Request cards (shown in place of tables below the md breakpoint) */
+.request-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+.request-card {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: 0.65rem;
+    padding: 0.85rem 1rem;
+}
+.request-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+.request-card-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+    color: var(--dark-green);
+}
+.request-card-top .status-badge {
+    flex: 0 0 auto;
+}
+.request-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--light-gray);
+}
+.request-card-link {
+    margin-top: 0.75rem;
+    min-height: 2.75rem;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Cancel button on request details */
+.cancel-request-wrap .btn {
+    min-height: 2.75rem;
+}
+
+/* Toast must never be wider than the screen */
+.request-toast {
+    min-width: 0;
+    width: min(340px, calc(100vw - 2rem));
+}
+
+@media (min-width: 576px) {
+    .w-sm-auto { width: auto !important; }
+}
+
+@media (max-width: 767.98px) {
+    /* Touch targets */
+    .navbar .nav-user-toggle,
+    .navbar-toggler {
+        min-width: 2.75rem;
+        min-height: 2.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #dashboard-refresh-btn,
+    .view-link {
+        min-height: 2.5rem;
+    }
+
+    .verify-banner {
+        padding: 0.85rem !important;
+    }
+
+    .quick-action-panel .quick-action-buttons {
+        width: 100%;
+    }
+
+    .cancel-request-wrap .btn {
+        width: 100%;
+    }
+
+    .request-form-panel .btn-brand {
+        min-height: 3rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .navbar .nav-user-toggle {
+        margin-right: 0.25rem;
+    }
+
+    .panel-menu {
+        max-width: calc(100vw - 1.5rem);
+    }
+}
+
+/* Login/register on mobile: the intro panel is hidden, so the form is the
+   first thing on the page. Keep it clear of the fixed navbar (4.75rem),
+   otherwise the Login/Register tabs (#nav-tab) end up underneath it.
+   Placed last so it wins over the earlier .form-page > .form-panel rules. */
+@media (max-width: 991.98px) {
+    .form-page > .form-panel {
+        min-height: 100svh;
+        padding-top: 6.5rem !important;
+        padding-bottom: 2rem !important;
+        align-items: flex-start;
+    }
+}
+
+/* Dashboard navbar: keep the icon group off the screen edge.
+   Padding (not margin) so the bar never overflows its container. */
+.app-content > .navbar {
+    padding-right: 1.25rem;
+}
+
+@media (max-width: 991.98px) {
+    .app-content > .navbar {
+        padding-right: 0.75rem;
+    }
+}
+
+/* Dark mode: the user button isn't a .nav-item, and #dashboardUserMenu sets
+   its own colour by id, so match the other navbar icons explicitly. */
+body[data-theme="dark"] #dashboardUserMenu,
+body[data-theme="dark"] #dashboardUserMenu:hover,
+body[data-theme="dark"] #dashboardUserMenu:focus-visible {
+    color: var(--accent-green) !important;
+}
+body[data-theme="dark"] .nav-item.nav-link:hover,
+body[data-theme="dark"] .nav-item.nav-link:focus-visible,
+body[data-theme="dark"] #dashboardUserMenu:hover,
+body[data-theme="dark"] #dashboardUserMenu:focus-visible {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Dark mode: paint the page background before <body> exists so navigating
+   between pages doesn't flash white (theme is set by an inline script in <head>). */
+html[data-theme="dark"] {
+    background-color: #151a17;
+    color-scheme: dark;
+}

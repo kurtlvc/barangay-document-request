@@ -7,8 +7,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const submitBtn       = document.getElementById('submitRequestBtn');
     const helperText      = document.getElementById('formHelperText');
 
-    // Document types are embedded by residents/new-request.php as JSON.
-    const documentTypes = window.documentTypesData || {};
+    // Document types are read from the form's data attribute (or global fallback).
+    let documentTypes = window.documentTypesData || {};
+    if (form.dataset.documentTypes) {
+        try {
+            documentTypes = JSON.parse(form.dataset.documentTypes);
+        } catch (e) {}
+    }
 
     const detailBadge        = document.getElementById('detailBadge');
     const detailTitle        = document.getElementById('detailTitle');

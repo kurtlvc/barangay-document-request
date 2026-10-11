@@ -18,6 +18,17 @@ $basePath = bdr_base_path();
 <?php include __DIR__ . '/page-layout/header.php' ?>
 <main class="account-settings-main flex-grow-1 overflow-auto p-3 p-lg-4">
     <div class="edit-panel m-3">
+        <?php if ($role === 'resident'):
+            $isVerified = (($_SESSION['resident_status'] ?? null) === 'verified');
+        ?>
+        <div class="verify-banner d-flex align-items-center gap-3 mb-4 p-3 mx-3" id="accountVerifyBanner">
+            <i class="bi <?= $isVerified ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill' ?> fs-3 flex-shrink-0" id="accountVerifyIcon"></i>
+            <div>
+                <h6 class="fw-bold mb-1" id="accountVerifyTitle"><?= $isVerified ? 'Verified Resident Profile' : 'Resident Profile Pending Verification' ?></h6>
+                <small class="mb-0" id="accountVerifyText"><?= $isVerified ? 'Your account is linked with your official barangay record.' : 'Verify your profile at the barangay to unlock document requests. Changing your name or address later will require verification again.' ?></small>
+            </div>
+        </div>
+        <?php endif; ?>
         <div class="main-card m-3 p-3 p-md-5 border border-2 rounded-3">
             <h3 class="fw-bold panel-title mb-4">Personal Information</h3>
             <div class="alert d-none" id="personalAlert" role="alert"></div>

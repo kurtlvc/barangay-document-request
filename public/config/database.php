@@ -1,7 +1,7 @@
 <?php
 // Database connection settings.
 
-$DB_HOST = '127.0.0.1:3307';
+$DB_HOST = '127.0.0.1:3306';
 $DB_NAME = 'barangay_system';
 $DB_USER = 'root';
 $DB_PASS = '';

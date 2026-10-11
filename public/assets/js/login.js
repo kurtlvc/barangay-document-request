@@ -200,13 +200,25 @@
                 }
             }
 
-            // Extra: password match on step 3
+            // Extra: password match + security questions on step 3
             if (step === 3) {
                 const pass    = document.getElementById('registerPasswordInput');
                 const confirm = document.getElementById('confirmpassInput');
                 if (pass && confirm && pass.value !== confirm.value) {
                     setFieldError(confirm, 'Passwords do not match.');
                     valid = false;
+                }
+                const sq1 = document.getElementById('sq1Input');
+                const sq2 = document.getElementById('sq2Input');
+                if (sq1 && sq2) {
+                    if (!sq1.value || !sq2.value) {
+                        setFieldError(sq1, !sq1.value ? 'Choose a security question.' : null);
+                        setFieldError(sq2, !sq2.value ? 'Choose a security question.' : null);
+                        valid = false;
+                    } else if (sq1.value === sq2.value) {
+                        setFieldError(sq2, 'Choose a different question from the first.');
+                        valid = false;
+                    }
                 }
             }
 
@@ -301,6 +313,143 @@
 
         // ── Initialise: set step 1 as active and correct button states ──
         setStep(1);
+    }
+
+    // ── Forgot password (offline: security questions, no email/SMS) ─────
+    const forgotModalEl = document.getElementById('forgotPasswordModal');
+    if (forgotModalEl) {
+        const fpEmail    = document.getElementById('forgotEmailInput');
+        const fpFindBtn  = document.getElementById('forgotFindBtn');
+        const fpResetBtn = document.getElementById('forgotResetBtn');
+        const fpError    = document.getElementById('forgotError');
+        const fpStepMail = document.getElementById('forgotStepEmail');
+        const fpStepAsk  = document.getElementById('forgotStepReset');
+        let fpAccountEmail = '';
+
+        const fpShowError = (msg) => {
+            fpError.textContent = msg;
+            fpError.hidden = !msg;
+        };
+        const fpPost = async (entries) => {
+            const formData = new FormData();
+            Object.entries(entries).forEach(([k, v]) => formData.append(k, v));
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const response = await fetch('./api/auth.php', {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': csrfToken },
+                body: formData,
+                credentials: 'same-origin'
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.status !== 'ok') throw new Error(data.message || 'Something went wrong. Please try again.');
+            return data;
+        };
+
+        const fpCantBtn      = document.getElementById('forgotCantAnswerBtn');
+        const fpStepReq      = document.getElementById('forgotStepRequest');
+        const fpSubmitReqBtn = document.getElementById('forgotSubmitRequestBtn');
+        const fpReason       = document.getElementById('forgotReasonInput');
+
+        forgotModalEl.addEventListener('hidden.bs.modal', () => {
+            fpShowError('');
+            fpAccountEmail = '';
+            fpEmail.value = '';
+            fpStepMail.classList.remove('d-none');
+            fpStepAsk.classList.add('d-none');
+            if (fpStepReq) fpStepReq.classList.add('d-none');
+            fpFindBtn.classList.remove('d-none');
+            fpResetBtn.classList.add('d-none');
+            if (fpSubmitReqBtn) fpSubmitReqBtn.classList.add('d-none');
+            ['forgotAnswer1Input', 'forgotAnswer2Input', 'forgotNewPassInput', 'forgotConfirmPassInput'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            if (fpReason) fpReason.value = '';
+        });
+
+        if (fpCantBtn && fpStepReq && fpSubmitReqBtn) {
+            fpCantBtn.addEventListener('click', () => {
+                fpShowError('');
+                fpStepAsk.classList.add('d-none');
+                fpResetBtn.classList.add('d-none');
+                fpStepReq.classList.remove('d-none');
+                fpSubmitReqBtn.classList.remove('d-none');
+            });
+
+            fpSubmitReqBtn.addEventListener('click', async () => {
+                fpShowError('');
+                fpSubmitReqBtn.disabled = true;
+                try {
+                    const formData = new FormData();
+                    formData.append('email', fpAccountEmail);
+                    if (fpReason && fpReason.value.trim()) {
+                        formData.append('reason', fpReason.value.trim());
+                    }
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                    const response = await fetch('./api/password-resets.php?action=request', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-Token': csrfToken },
+                        body: formData,
+                        credentials: 'same-origin'
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok || data.status !== 'ok') {
+                        throw new Error(data.message || 'Failed to submit reset request.');
+                    }
+                    bootstrap.Modal.getOrCreateInstance(forgotModalEl).hide();
+                    showToast(data.message, 'success');
+                } catch (error) {
+                    fpShowError(error.message);
+                } finally {
+                    fpSubmitReqBtn.disabled = false;
+                }
+            });
+        }
+
+        fpFindBtn.addEventListener('click', async () => {
+            fpShowError('');
+            const email = fpEmail.value.trim();
+            if (!email || !fpEmail.checkValidity()) {
+                fpShowError('Enter a valid email address.');
+                return;
+            }
+            fpFindBtn.disabled = true;
+            try {
+                const data = await fpPost({action: 'request-reset', email});
+                fpAccountEmail = email.toLowerCase();
+                document.getElementById('forgotQ1Label').textContent = data.questions.q1;
+                document.getElementById('forgotQ2Label').textContent = data.questions.q2;
+                fpStepMail.classList.add('d-none');
+                fpStepAsk.classList.remove('d-none');
+                fpFindBtn.classList.add('d-none');
+                fpResetBtn.classList.remove('d-none');
+            } catch (error) {
+                fpShowError(error.message);
+            } finally {
+                fpFindBtn.disabled = false;
+            }
+        });
+
+        fpResetBtn.addEventListener('click', async () => {
+            fpShowError('');
+            const a1 = document.getElementById('forgotAnswer1Input').value;
+            const a2 = document.getElementById('forgotAnswer2Input').value;
+            const np = document.getElementById('forgotNewPassInput').value;
+            const cp = document.getElementById('forgotConfirmPassInput').value;
+            if (!a1.trim() || !a2.trim()) { fpShowError('Answer both security questions.'); return; }
+            if (np.length < 8) { fpShowError('New password must be at least 8 characters.'); return; }
+            if (np !== cp) { fpShowError('New passwords do not match.'); return; }
+            fpResetBtn.disabled = true;
+            try {
+                await fpPost({action: 'confirm-reset', email: fpAccountEmail, answer1: a1, answer2: a2, new_password: np});
+                bootstrap.Modal.getOrCreateInstance(forgotModalEl).hide();
+                showToast('Password reset. You can now log in.', 'success');
+            } catch (error) {
+                fpShowError(error.message);
+            } finally {
+                fpResetBtn.disabled = false;
+            }
+        });
     }
 
 })();

@@ -33,7 +33,7 @@ $actionLabels = [
 
 <?php include __DIR__ . '/../page-layout/header.php' ?>
     <main class="resident-content flex-grow-1 overflow-auto p-3 p-lg-4">
-        <div class="mx-auto" style="max-width: 1120px">
+        <div class="mx-auto content-max-width">
             <a href="process-requests.php" class="back-to-details d-inline-flex align-items-center gap-2 text-decoration-none heading-green mb-3">
                 <i class="bi bi-arrow-left" aria-hidden="true"></i><span>Back to requests</span>
             </a>

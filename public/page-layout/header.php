@@ -11,16 +11,14 @@ $basePath = $basePath ?? (function_exists('bdr_base_path') ? bdr_base_path() : '
     <title><?= htmlspecialchars($pageTitle) ?> — DokuBayan | Barangay Document Requests</title>
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap-icons/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/styles.css">
     <meta name="base-path" content="<?= htmlspecialchars($basePath, ENT_QUOTES, 'UTF-8') ?>">
     <?php if (!empty($_SESSION['csrf_token'])): ?>
     <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
     <?php endif; ?>
-    <script>try{if(localStorage.getItem('dokubayan-theme')==='dark')document.documentElement.dataset.theme='dark';}catch(e){}</script>
+    <script src="<?= htmlspecialchars($basePath) ?>/assets/js/theme-init.js"></script>
 </head>
 <body>
-    <script>if(document.documentElement.dataset.theme==='dark')document.body.dataset.theme='dark';</script>
     <div class="container-fluid p-0">
         <div class="d-flex g-0 app-shell overflow-hidden">
             <?php include __DIR__ . '/../includes/sidebar.php'; ?>

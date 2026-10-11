@@ -19,7 +19,7 @@ $documentTypes = $pdo->query('SELECT document_id, document_name, fee, processing
             <span class="eyebrow-badge p-1 rounded">NEW REQUEST</span>
             <h3 class="heading-green fw-bold mt-3 mb-4">Request Details</h3>
 
-            <form id="newRequestForm" data-redirect-url="my-requests.php">
+            <form id="newRequestForm" data-redirect-url="my-requests.php" data-document-types="<?= htmlspecialchars(json_encode(array_column($documentTypes, null, 'document_id'), JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8') ?>">
 
                 <div class="mb-4">
                     <label for="documentType" class="form-label">
@@ -62,7 +62,7 @@ $documentTypes = $pdo->query('SELECT document_id, document_name, fee, processing
                 <h3 class="heading-green fw-bold mt-3 mb-4" id="detailTitle">&nbsp;</h3>
 
                 <p class="text-muted-soft mb-1">Fee</p>
-                <p class="fw-bold fs-5 mb-4" style="color: var(--gold);" id="detailFee">—</p>
+                <p class="fw-bold fs-5 mb-4 text-gold" id="detailFee">—</p>
 
                 <p class="text-muted-soft mb-1">Processing</p>
                 <p class="fw-bold heading-green mb-4" id="detailProcessing">—</p>
@@ -70,7 +70,7 @@ $documentTypes = $pdo->query('SELECT document_id, document_name, fee, processing
                 <p class="text-muted-soft mb-2">Requirements:</p>
                 <div id="detailRequirements" class="mb-4"></div>
 
-                <div class="panel p-3 d-flex gap-3 align-items-start" style="background-color: #e3e9e5;">
+                <div class="panel p-3 d-flex gap-3 align-items-start detail-notice-panel">
                     <i class="bi bi-info-circle heading-green fs-5"></i>
                     <p class="mb-0 small text-muted-soft">
                         Please wait for your request to be approved and bring the requirements when claiming the document.
@@ -83,7 +83,7 @@ $documentTypes = $pdo->query('SELECT document_id, document_name, fee, processing
 </div>
 
 <!-- Toast: Request Submitted -->
-<div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1080;">
+<div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3 toast-elevated">
     <div id="requestSubmittedToast" class="toast request-toast bg-white" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex align-items-start gap-3 p-3">
             <div class="toast-check">
@@ -103,9 +103,6 @@ $documentTypes = $pdo->query('SELECT document_id, document_name, fee, processing
     </div>
 </div>
 
-<script>
-    window.documentTypesData = <?= json_encode(array_column($documentTypes, null, 'document_id'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-</script>
 <script src="../assets/js/new-request.js"></script>
     </main>
 <?php include __DIR__ . '/../page-layout/footer.php' ?>

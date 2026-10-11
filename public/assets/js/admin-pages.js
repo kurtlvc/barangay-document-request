@@ -396,6 +396,68 @@ document.addEventListener('DOMContentLoaded', () => {
             showAdminToast(`${row.dataset.name}'s resident record was updated.`);
         });
 
+        // Direct Reset Password from Resident Records
+        const residentResetModalEl = document.getElementById('residentResetModal');
+        const residentResetForm = document.getElementById('residentResetForm');
+        const residentResetUserId = document.getElementById('residentResetUserId');
+        const residentResetSubTitle = document.getElementById('residentResetSubTitle');
+        const residentNewPassInput = document.getElementById('residentNewPassInput');
+        const residentResetNotesInput = document.getElementById('residentResetNotesInput');
+        const residentGeneratePassBtn = document.getElementById('residentGeneratePassBtn');
+
+        if (residentResetModalEl && residentResetForm) {
+            const residentResetModal = bootstrap.Modal.getOrCreateInstance(residentResetModalEl);
+
+            residentGeneratePassBtn?.addEventListener('click', async () => {
+                try {
+                    const res = await apiRequest('../api/password-resets.php', 'POST', {action: 'generate-temp'});
+                    residentNewPassInput.value = res.temp_password || '';
+                } catch {
+                    residentNewPassInput.value = Math.random().toString(36).slice(-10) + '!9';
+                }
+            });
+
+            rows.addEventListener('click', event => {
+                const btn = event.target.closest('[data-reset-resident-password]');
+                const r = btn?.closest('tr[data-name]');
+                if (!r) return;
+                const uid = Number(r.dataset.userId || 0);
+                if (!uid) {
+                    showAdminToast('No user login linked to this resident profile.', 'danger');
+                    return;
+                }
+                residentResetUserId.value = String(uid);
+                residentResetSubTitle.textContent = `Set temporary password for ${r.dataset.name} (${r.dataset.email || 'No email'})`;
+                residentNewPassInput.value = '';
+                if (residentResetNotesInput) residentResetNotesInput.value = '';
+                residentGeneratePassBtn?.click();
+                residentResetModal.show();
+            });
+
+            residentResetForm.addEventListener('submit', async e => {
+                e.preventDefault();
+                const uid = Number(residentResetUserId.value);
+                const newPass = residentNewPassInput.value.trim();
+                const notes = residentResetNotesInput?.value.trim() || '';
+                if (!uid || newPass.length < 8) {
+                    showAdminToast('Password must be at least 8 characters.', 'danger');
+                    return;
+                }
+                try {
+                    const res = await apiRequest('../api/password-resets.php', 'POST', {
+                        action: 'admin-reset',
+                        user_id: uid,
+                        new_password: newPass,
+                        admin_notes: notes
+                    });
+                    residentResetModal.hide();
+                    showAdminToast(res.message || 'Password updated successfully.');
+                } catch (err) {
+                    showAdminToast(err.message, 'danger');
+                }
+            });
+        }
+
         document.getElementById('residentSearch')?.addEventListener('input', () => { currentPage = 1; filterResidents(); });
         document.getElementById('residentStatusFilters')?.addEventListener('click', event => {
             const button = event.target.closest('[data-resident-status]');
@@ -762,8 +824,139 @@ document.addEventListener('DOMContentLoaded', () => {
         applyDateRange();
     }
 
+    function setupPasswordResetQueue() {
+        const rows = document.getElementById('resetQueueRows');
+        const searchInput = document.getElementById('resetSearch');
+        const filterGroup = document.getElementById('resetStatusFilters');
+        const totalCount = document.getElementById('resetTotalCount');
+        const emptyRow = document.getElementById('resetQueueEmptyRow');
+        const resetModalEl = document.getElementById('adminResetModal');
+        const resetForm = document.getElementById('adminResetForm');
+        const rejectModalEl = document.getElementById('rejectResetModal');
+        const rejectForm = document.getElementById('rejectResetForm');
+        if (!rows || !resetModalEl) return;
+
+        const resetModal = bootstrap.Modal.getOrCreateInstance(resetModalEl);
+        const rejectModal = rejectModalEl ? bootstrap.Modal.getOrCreateInstance(rejectModalEl) : null;
+        const resetUserId = document.getElementById('resetUserId');
+        const resetRequestId = document.getElementById('resetRequestId');
+        const resetSubTitle = document.getElementById('adminResetSubTitle');
+        const resetPassInput = document.getElementById('adminNewPassInput');
+        const resetNotesInput = document.getElementById('adminNotesInput');
+        const genPassBtn = document.getElementById('adminGeneratePassBtn');
+        const rejectRequestId = document.getElementById('rejectRequestId');
+        const rejectResidentName = document.getElementById('rejectResidentName');
+        const rejectReasonInput = document.getElementById('rejectReasonInput');
+
+        genPassBtn?.addEventListener('click', async () => {
+            try {
+                const res = await apiRequest('../api/password-resets.php', 'POST', {action: 'generate-temp'});
+                resetPassInput.value = res.temp_password || '';
+            } catch {
+                resetPassInput.value = Math.random().toString(36).slice(-10) + '!9';
+            }
+        });
+
+        function filterQueue() {
+            const query = (searchInput?.value || '').trim().toLowerCase();
+            const status = filterGroup?.querySelector('[data-reset-status].active')?.dataset.resetStatus || 'all';
+            let visibleCount = 0;
+
+            rows.querySelectorAll('tr[data-request-id]').forEach(r => {
+                const matchesQuery = !query || r.dataset.search.includes(query);
+                const matchesStatus = status === 'all' || r.dataset.status === status;
+                const show = matchesQuery && matchesStatus;
+                r.hidden = !show;
+                if (show) visibleCount++;
+            });
+
+            if (emptyRow) emptyRow.hidden = visibleCount > 0;
+            if (totalCount) totalCount.textContent = String(visibleCount);
+        }
+
+        searchInput?.addEventListener('input', filterQueue);
+        filterGroup?.addEventListener('click', e => {
+            const btn = e.target.closest('[data-reset-status]');
+            if (!btn) return;
+            filterGroup.querySelectorAll('[data-reset-status]').forEach(b => {
+                const active = b === btn;
+                b.classList.toggle('active', active);
+                b.setAttribute('aria-pressed', String(active));
+            });
+            filterQueue();
+        });
+
+        rows.addEventListener('click', e => {
+            const approveBtn = e.target.closest('[data-approve-reset]');
+            const rejectBtn = e.target.closest('[data-reject-reset]');
+            const r = (approveBtn || rejectBtn)?.closest('tr[data-request-id]');
+            if (!r) return;
+
+            if (approveBtn) {
+                resetUserId.value = r.dataset.userId;
+                resetRequestId.value = r.dataset.requestId;
+                resetSubTitle.textContent = `Resident: ${r.dataset.name} (${r.dataset.email})`;
+                resetPassInput.value = '';
+                if (resetNotesInput) resetNotesInput.value = '';
+                genPassBtn?.click();
+                resetModal.show();
+            } else if (rejectBtn && rejectModal) {
+                rejectRequestId.value = r.dataset.requestId;
+                rejectResidentName.textContent = r.dataset.name;
+                if (rejectReasonInput) rejectReasonInput.value = '';
+                rejectModal.show();
+            }
+        });
+
+        resetForm?.addEventListener('submit', async e => {
+            e.preventDefault();
+            const uid = Number(resetUserId.value);
+            const reqId = Number(resetRequestId.value);
+            const newPass = resetPassInput.value.trim();
+            const notes = resetNotesInput?.value.trim() || '';
+            if (!uid || newPass.length < 8) {
+                showAdminToast('Password must be at least 8 characters.', 'danger');
+                return;
+            }
+            try {
+                const res = await apiRequest('../api/password-resets.php', 'POST', {
+                    action: 'admin-reset',
+                    user_id: uid,
+                    request_id: reqId || null,
+                    new_password: newPass,
+                    admin_notes: notes
+                });
+                resetModal.hide();
+                showAdminToast(res.message || 'Password reset successfully.');
+                setTimeout(() => window.location.reload(), 1200);
+            } catch (err) {
+                showAdminToast(err.message, 'danger');
+            }
+        });
+
+        rejectForm?.addEventListener('submit', async e => {
+            e.preventDefault();
+            const reqId = Number(rejectRequestId.value);
+            const reason = rejectReasonInput?.value.trim() || '';
+            if (!reqId) return;
+            try {
+                const res = await apiRequest('../api/password-resets.php', 'POST', {
+                    action: 'reject',
+                    request_id: reqId,
+                    reason: reason
+                });
+                rejectModal.hide();
+                showAdminToast(res.message || 'Request rejected.');
+                setTimeout(() => window.location.reload(), 1200);
+            } catch (err) {
+                showAdminToast(err.message, 'danger');
+            }
+        });
+    }
+
     setupAccountManagement();
     setupResidentRecords();
+    setupPasswordResetQueue();
     setupDocumentTypes();
     setupReports();
 });

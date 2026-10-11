@@ -10,7 +10,7 @@ $name = $_SESSION['name'] ?? 'Staff';
 $basePath = '..';
 
 $notifications = [];
-$readyForRelease = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r.last_name) AS name, d.document_name AS doc, CONCAT('REQ-', q.request_id) AS ref FROM requests q JOIN residents r ON r.resident_id = q.resident_id JOIN document_types d ON d.document_id = q.document_id WHERE LOWER(q.status) = 'ready for release' ORDER BY q.request_date")->fetchAll();
+$readyForRelease = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r.last_name) AS name, d.document_name AS doc, CONCAT('REQ-', q.request_id) AS ref, q.amount_due, p.or_number FROM requests q JOIN residents r ON r.resident_id = q.resident_id JOIN document_types d ON d.document_id = q.document_id LEFT JOIN payments p ON p.request_id = q.request_id WHERE LOWER(q.status) = 'ready for release' ORDER BY q.request_date")->fetchAll();
 $recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r.last_name) AS name, d.document_name AS doc, CONCAT('REQ-', q.request_id) AS ref, DATE_FORMAT(q.request_date, '%b %e, %Y') AS claimed_on FROM requests q JOIN residents r ON r.resident_id = q.resident_id JOIN document_types d ON d.document_id = q.document_id WHERE LOWER(q.status) = 'released' ORDER BY q.request_date DESC LIMIT 10")->fetchAll();
 ?>
 
@@ -26,6 +26,7 @@ $recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r
                             <tr>
                                 <th>Resident</th>
                                 <th>Document</th>
+                                <th class="text-center">Payment</th>
                                 <th class="text-center">Action</th>
                             </tr>
                         </thead>
@@ -46,7 +47,21 @@ $recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r
                                     <td class="fw-semibold heading-green">
                                         <?= htmlspecialchars($r['doc']) ?>
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center text-nowrap">
+                                        <?php if (!empty($r['or_number'])): ?>
+                                            <span class="status-badge status-claimed"><i class="bi bi-check-circle-fill"></i> Paid</span><br>
+                                            <small class="text-muted-soft">O.R. <?= htmlspecialchars($r['or_number']) ?></small>
+                                        <?php elseif ((float) $r['amount_due'] > 0): ?>
+                                            <span class="status-badge status-pending">Unpaid</span><br>
+                                            <small class="text-muted-soft">₱<?= number_format((float) $r['amount_due'], 2) ?></small>
+                                        <?php else: ?>
+                                            <span class="status-badge status-inactive">No fee</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        <?php if (empty($r['or_number']) && (float) $r['amount_due'] > 0): ?>
+                                            <button type="button" class="btn btn-outline-brand btn-sm mark-paid-btn" data-amount="<?= number_format((float) $r['amount_due'], 2, '.', '') ?>">Mark as Paid</button>
+                                        <?php endif; ?>
                                         <button type="button" class="btn btn-brand btn-sm mark-claimed-btn">Mark as Claimed</button>
                                     </td>
                                 </tr>
@@ -91,6 +106,29 @@ $recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r
             </section>
         </div>
 
+        <!-- Record-payment modal -->
+        <div class="modal fade" id="recordPaymentModal" tabindex="-1" aria-labelledby="recordPaymentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold heading-green" id="recordPaymentModalLabel">Record Cash Payment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-2"><strong id="recordPaymentLabel"></strong></p>
+                        <p class="text-muted-soft mb-3 modal-subtext">Amount due: <strong class="heading-green" id="recordPaymentAmount"></strong> · cash only.</p>
+                        <label for="orNumberInput" class="form-label">O.R. Number <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="orNumberInput" maxlength="50" placeholder="e.g. 0045123" autocomplete="off">
+                        <p class="text-danger small mt-2 mb-0" id="recordPaymentError" role="alert" hidden></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-brand" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-brand" id="confirmPaymentBtn">Record Payment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Confirm-release modal -->
         <div class="modal fade" id="confirmReleaseModal" tabindex="-1" aria-labelledby="confirmReleaseModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -101,7 +139,7 @@ $recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r
                     </div>
                     <div class="modal-body">
                         <p class="mb-1">Mark <strong id="confirmReleaseLabel"></strong> as claimed?</p>
-                        <p class="text-muted-soft mb-0" style="font-size:.9rem">This records the date, time, and your name as the releasing staff, and cannot be undone.</p>
+                        <p class="text-muted-soft mb-0 modal-subtext">This records the date, time, and your name as the releasing staff, and cannot be undone.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-brand" data-bs-dismiss="modal">Cancel</button>
@@ -112,7 +150,7 @@ $recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r
         </div>
 
         <!-- "Marked as claimed" toast — reuses styles.css's existing .request-toast rules -->
-        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080">
+        <div class="toast-container position-fixed top-0 end-0 p-3 toast-elevated">
             <div id="releasedToast" class="toast request-toast p-3" role="status" aria-live="polite" aria-atomic="true">
                 <div class="d-flex align-items-start gap-3">
                     <span class="toast-check"><i class="bi bi-check-lg"></i></span>
@@ -121,7 +159,7 @@ $recentlyClaimed = $pdo->query("SELECT q.request_id, CONCAT(r.first_name, ' ', r
                             <strong class="heading-green">Mark as Claimed</strong>
                             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                         </div>
-                        <p class="mb-2 text-muted-soft" id="releasedToastBody" style="font-size:.9rem"></p>
+                        <p class="mb-2 text-muted-soft modal-subtext" id="releasedToastBody"></p>
                     </div>
                     </div>
                 </div>

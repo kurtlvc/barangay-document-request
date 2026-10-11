@@ -14,12 +14,14 @@ $navItems = [
         ['icon' => '<i class="bi bi-house-fill"></i>','label' => 'Dashboard', 'href' => $basePath . '/staff/dashboard.php'],
         ['icon' => '<i class="bi bi-clipboard2-check-fill"></i>','label' => 'Process Requests', 'href' => $basePath . '/staff/process-requests.php'],
         ['icon' => '<i class="bi bi-collection-fill"></i>','label' => 'Release Management', 'href' => $basePath . '/staff/release-management.php'],
+        ['icon' => '<i class="bi bi-key-fill"></i>','label' => 'Password Resets', 'href' => $basePath . '/admin/password-resets.php'],
         ['icon' => '<i class="bi bi-bar-chart-fill"></i>','label' => 'Reports', 'href' => $basePath . '/staff/reports.php'],
     ],
     'admin' => [
         ['icon' => '<i class="bi bi-house-fill"></i>','label' => 'Dashboard', 'href' => $basePath . '/admin/dashboard.php'],
         ['icon' => '<i class="bi bi-person-fill-gear"></i>','label' => 'User Management', 'href' => $basePath . '/admin/user-management.php'],
         ['icon' => '<i class="bi bi-person-vcard-fill"></i>','label' => 'Resident Records', 'href' => $basePath . '/admin/resident-records.php'],
+        ['icon' => '<i class="bi bi-key-fill"></i>','label' => 'Password Resets', 'href' => $basePath . '/admin/password-resets.php'],
         ['icon' => '<i class="bi bi-file-earmark-text-fill"></i>','label' => 'Document Types', 'href' => $basePath . '/admin/document-types.php'],
         ['icon' => '<i class="bi bi-file-earmark-bar-graph-fill"></i>','label' => 'Reports', 'href' => $basePath . '/admin/reports.php'],
     ],
@@ -30,6 +32,8 @@ $roleBadge = [
     'staff' => 'Barangay Staff',
     'admin' => 'Barangay Administrator',
 ];
+
+$isVerifiedResident = ($role === 'resident') && (($_SESSION['resident_status'] ?? null) === 'verified');
 ?>
 <aside class="sidebar col-lg-3 d-none d-lg-flex app-shell overflow-hidden">  
     <div class="sidebar-content p-3 d-flex flex-column h-100">
@@ -55,7 +59,14 @@ $roleBadge = [
             <?php endif; ?>
             <div class="profile-card-info">
                 <p class="profile-card-name"><?= htmlspecialchars($name) ?></p>
-                <p class="profile-card-role"><?= htmlspecialchars($roleBadge[$role] ?? ucfirst($role)) ?></p>
+                <?php if ($role === 'resident'): ?>
+                    <span class="badge <?= $isVerifiedResident ? 'verified-badge' : 'unverified-badge' ?>">
+                        <i class="bi <?= $isVerifiedResident ? 'bi-patch-check-fill' : 'bi-hourglass-split' ?>"></i>
+                        <?= $isVerifiedResident ? 'Verified Resident' : 'Pending Verification' ?>
+                    </span>
+                <?php else: ?>
+                    <p class="profile-card-role"><?= htmlspecialchars($roleBadge[$role] ?? ucfirst($role)) ?></p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -85,7 +96,14 @@ $roleBadge = [
         <?php endif; ?>
         <div class="profile-card-info">
             <p class="profile-card-name"><?= htmlspecialchars($name) ?></p>
-            <p class="profile-card-role"><?= htmlspecialchars($roleBadge[$role] ?? ucfirst($role)) ?></p>
+            <?php if ($role === 'resident'): ?>
+                <span class="badge <?= $isVerifiedResident ? 'verified-badge' : 'unverified-badge' ?>">
+                    <i class="bi <?= $isVerifiedResident ? 'bi-patch-check-fill' : 'bi-hourglass-split' ?>"></i>
+                    <?= $isVerifiedResident ? 'Verified Resident' : 'Pending Verification' ?>
+                </span>
+            <?php else: ?>
+                <p class="profile-card-role"><?= htmlspecialchars($roleBadge[$role] ?? ucfirst($role)) ?></p>
+            <?php endif; ?>
         </div>
     </div>
 </div>

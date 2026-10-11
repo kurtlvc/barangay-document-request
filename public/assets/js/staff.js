@@ -26,6 +26,81 @@ document.addEventListener('DOMContentLoaded', function () {
     if (statusSelect) statusSelect.addEventListener('change', applyFilters);
     applyFilters();
 
+    /* ---------------- Process requests: sort by date filed ---------------- */
+    var dateSortBtn = document.getElementById('reqDateSort');
+    var dateSortDir = 0; // 0 = server order, 1 = oldest first, -1 = newest first
+    var requestTbody = document.getElementById('requestRows');
+    if (dateSortBtn && requestTbody) {
+        dateSortBtn.addEventListener('click', function () {
+            dateSortDir = dateSortDir === 1 ? -1 : 1;
+            var rowsArray = Array.prototype.filter.call(
+                requestTbody.querySelectorAll('tr[data-status]'),
+                function (row) { return row.id !== 'noResultsRow'; }
+            );
+            rowsArray.sort(function (a, b) {
+                var da = a.dataset.date || '';
+                var db = b.dataset.date || '';
+                if (da === db) return 0;
+                return (da < db ? -1 : 1) * dateSortDir;
+            });
+            rowsArray.forEach(function (row) { requestTbody.appendChild(row); });
+            var icon = dateSortBtn.querySelector('i');
+            if (icon) icon.className = 'bi ' + (dateSortDir === 1 ? 'bi-caret-up-fill' : 'bi-caret-down-fill');
+            dateSortBtn.setAttribute('aria-label', dateSortDir === 1 ? 'Sorted oldest first. Activate to sort newest first.' : 'Sorted newest first. Activate to sort oldest first.');
+        });
+    }
+
+    /* ---------------- Release management: record cash payment ---------------- */
+    var paymentModalEl = document.getElementById('recordPaymentModal');
+    var paymentModal = paymentModalEl && window.bootstrap ? new bootstrap.Modal(paymentModalEl) : null;
+    var paymentLabelEl = document.getElementById('recordPaymentLabel');
+    var paymentAmountEl = document.getElementById('recordPaymentAmount');
+    var orNumberInput = document.getElementById('orNumberInput');
+    var paymentError = document.getElementById('recordPaymentError');
+    var paymentConfirmBtn = document.getElementById('confirmPaymentBtn');
+    var paymentRow = null;
+
+    document.querySelectorAll('.mark-paid-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            paymentRow = btn.closest('tr');
+            if (!paymentRow || !paymentModal) return;
+            if (paymentLabelEl) paymentLabelEl.textContent = paymentRow.dataset.doc + ' for ' + paymentRow.dataset.name + ' (' + paymentRow.dataset.ref + ')';
+            if (paymentAmountEl) paymentAmountEl.textContent = '₱' + (btn.dataset.amount || '0.00');
+            if (orNumberInput) orNumberInput.value = '';
+            if (paymentError) paymentError.hidden = true;
+            if (paymentConfirmBtn) paymentConfirmBtn.disabled = false;
+            paymentModal.show();
+        });
+    });
+
+    if (paymentConfirmBtn) {
+        paymentConfirmBtn.addEventListener('click', function () {
+            if (!paymentRow) return;
+            var orNumber = orNumberInput ? orNumberInput.value.trim() : '';
+            if (orNumber === '') {
+                if (paymentError) {
+                    paymentError.textContent = 'An O.R. number is required.';
+                    paymentError.hidden = false;
+                }
+                if (orNumberInput) orNumberInput.focus();
+                return;
+            }
+            paymentConfirmBtn.disabled = true;
+            if (paymentError) paymentError.hidden = true;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            fetch('../api/requests.php', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrf}, body: JSON.stringify({action: 'mark-paid', request_id: paymentRow.dataset.requestId, or_number: orNumber})})
+                .then(response => response.json().then(data => { if (!response.ok || data.status !== 'ok') throw new Error(data.message || 'Could not record the payment.'); return data; }))
+                .then(() => window.location.reload())
+                .catch(error => {
+                    if (paymentError) {
+                        paymentError.textContent = error.message;
+                        paymentError.hidden = false;
+                    }
+                    paymentConfirmBtn.disabled = false;
+                });
+        });
+    }
+
     /* ---------------- Release management: confirm + release flow ---------------- */
     var confirmModalEl = document.getElementById('confirmReleaseModal');
     var confirmModal = confirmModalEl && window.bootstrap ? new bootstrap.Modal(confirmModalEl) : null;

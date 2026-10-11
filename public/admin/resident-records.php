@@ -8,7 +8,7 @@ $role = $_SESSION['role'] ?? 'admin';
 $name = $_SESSION['name'] ?? 'Administrator';
 $basePath = '..';
 
-$residents = $pdo->query("SELECT r.resident_id, CONCAT(r.first_name, ' ', r.last_name) AS name, COALESCE(u.email, '') AS email, r.contact_number AS contact, r.address, r.created_at AS registered, IF(r.status = 'verified', 'Verified', 'Unverified') AS status FROM residents r LEFT JOIN users u ON u.id = r.user_id ORDER BY r.created_at DESC, r.resident_id DESC")->fetchAll();
+$residents = $pdo->query("SELECT r.resident_id, r.user_id, CONCAT(r.first_name, ' ', r.last_name) AS name, COALESCE(u.email, '') AS email, r.contact_number AS contact, r.address, r.created_at AS registered, IF(r.status = 'verified', 'Verified', 'Unverified') AS status FROM residents r LEFT JOIN users u ON u.id = r.user_id ORDER BY r.created_at DESC, r.resident_id DESC")->fetchAll();
 ?>
 
 <?php include __DIR__ . '/../page-layout/header.php' ?>
@@ -52,7 +52,7 @@ $residents = $pdo->query("SELECT r.resident_id, CONCAT(r.first_name, ' ', r.last
                         <?php foreach ($residents as $resident):
                             $search = strtolower(implode(' ', [$resident['name'], $resident['email'], $resident['address']]));
                         ?>
-                            <tr data-resident-id="<?= (int) $resident['resident_id'] ?>" data-search="<?= htmlspecialchars($search) ?>" data-status="<?= strtolower($resident['status']) ?>" data-name="<?= htmlspecialchars($resident['name']) ?>" data-email="<?= htmlspecialchars($resident['email']) ?>" data-contact="<?= htmlspecialchars($resident['contact']) ?>" data-address="<?= htmlspecialchars($resident['address']) ?>" data-registered="<?= htmlspecialchars($resident['registered']) ?>">
+                            <tr data-resident-id="<?= (int) $resident['resident_id'] ?>" data-user-id="<?= (int) ($resident['user_id'] ?? 0) ?>" data-search="<?= htmlspecialchars($search) ?>" data-status="<?= strtolower($resident['status']) ?>" data-name="<?= htmlspecialchars($resident['name']) ?>" data-email="<?= htmlspecialchars($resident['email']) ?>" data-contact="<?= htmlspecialchars($resident['contact']) ?>" data-address="<?= htmlspecialchars($resident['address']) ?>" data-registered="<?= htmlspecialchars($resident['registered']) ?>">
                                 <td class="fw-semibold heading-green"><?= htmlspecialchars($resident['name']) ?><br><small class="text-muted-soft fw-normal"><?= htmlspecialchars($resident['email']) ?></small></td>
                                 <td class="text-muted-soft text-nowrap"><?= htmlspecialchars($resident['contact']) ?></td>
                                 <td class="text-muted-soft"><?= htmlspecialchars($resident['address']) ?></td>
@@ -65,6 +65,9 @@ $residents = $pdo->query("SELECT r.resident_id, CONCAT(r.first_name, ' ', r.last
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-icon" data-unverify-resident aria-label="Move <?= htmlspecialchars($resident['name']) ?> back to pending" title="Move back to pending" data-bs-toggle="tooltip"><i class="bi bi-person-dash"></i></button>
                                     <?php endif; ?>
                                     <button type="button" class="btn btn-sm btn-outline-secondary action-icon" data-edit-resident aria-label="Edit <?= htmlspecialchars($resident['name']) ?>" title="Edit" data-bs-toggle="tooltip"><i class="bi bi-pencil"></i></button>
+                                    <?php if (!empty($resident['user_id'])): ?>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-icon" data-reset-resident-password aria-label="Reset password for <?= htmlspecialchars($resident['name']) ?>" title="Reset Password" data-bs-toggle="tooltip"><i class="bi bi-key"></i></button>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -134,6 +137,40 @@ $residents = $pdo->query("SELECT r.resident_id, CONCAT(r.first_name, ' ', r.last
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-brand" id="confirmVerifyResident">Yes, Verify Resident</button>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="residentResetModal" tabindex="-1" aria-labelledby="residentResetModalTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form id="residentResetForm" method="post">
+                        <input type="hidden" id="residentResetUserId" name="user_id">
+                        <div class="modal-header">
+                            <div>
+                                <h5 class="modal-title fw-bold heading-green" id="residentResetModalTitle">Reset Resident Password</h5>
+                                <p class="text-muted-soft small mb-0" id="residentResetSubTitle"></p>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="residentNewPassInput" class="form-label">New Temporary Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control font-monospace" id="residentNewPassInput" name="new_password" required minlength="8" autocomplete="off">
+                                    <button class="btn btn-outline-secondary" type="button" id="residentGeneratePassBtn" title="Generate Secure Password">Generate</button>
+                                </div>
+                                <small class="text-muted-soft">Minimum 8 characters. Share this temporary password securely with the resident.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="residentResetNotesInput" class="form-label">Admin Notes (Optional)</label>
+                                <textarea class="form-control" id="residentResetNotesInput" name="admin_notes" rows="2" placeholder="e.g. Identity verified in person at barangay hall"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-brand" id="residentResetSubmitBtn">Set New Password</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

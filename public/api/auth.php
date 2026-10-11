@@ -80,6 +80,23 @@ if ($action === 'register') {
             exit;
         }
 
+        // Security questions for offline password reset
+        $allowedQuestions = bdr_security_questions();
+        $sq1 = $_POST['security_q1'] ?? '';
+        $sq2 = $_POST['security_q2'] ?? '';
+        $sa1 = trim($_POST['security_a1'] ?? '');
+        $sa2 = trim($_POST['security_a2'] ?? '');
+        if (!isset($allowedQuestions[$sq1]) || !isset($allowedQuestions[$sq2]) || $sq1 === $sq2) {
+            http_response_code(422);
+            echo json_encode(['status' => 'error', 'message' => 'Choose two different security questions.']);
+            exit;
+        }
+        if ($sa1 === '' || $sa2 === '' || mb_strlen($sa1) > 100 || mb_strlen($sa2) > 100) {
+            http_response_code(422);
+            echo json_encode(['status' => 'error', 'message' => 'Answer both security questions (100 characters or fewer).']);
+            exit;
+        }
+
         // Check if email is already taken
         $stmtCheck = $pdo->prepare("SELECT id FROM users WHERE email = :email LIMIT 1");
         $stmtCheck->execute([':email' => $email]);
@@ -96,13 +113,17 @@ if ($action === 'register') {
 
         // 1. Insert into users
         $stmtUser = $pdo->prepare("
-            INSERT INTO users (name, email, password_hash, role) 
-            VALUES (:name, :email, :password_hash, 'resident')
+            INSERT INTO users (name, email, password_hash, role, security_question1, security_answer1_hash, security_question2, security_answer2_hash)
+            VALUES (:name, :email, :password_hash, 'resident', :sq1, :sa1, :sq2, :sa2)
         ");
         $stmtUser->execute([
             ':name' => $fullName,
             ':email' => $email,
             ':password_hash' => $passwordHash,
+            ':sq1' => $sq1,
+            ':sa1' => password_hash(bdr_normalize_answer($sa1), PASSWORD_DEFAULT),
+            ':sq2' => $sq2,
+            ':sa2' => password_hash(bdr_normalize_answer($sa2), PASSWORD_DEFAULT),
         ]);
         $newUserId = (int)$pdo->lastInsertId();
 
@@ -181,6 +202,68 @@ if ($action === 'register') {
         echo json_encode(['status' => 'error', 'message' => 'Database error during registration.']);
         exit;
     }
+}
+
+// Offline password reset via security questions (no email/SMS).
+// Step 1: look up the account's questions.
+if ($action === 'request-reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim(strtolower($_POST['email'] ?? ''));
+    $stmt = $pdo->prepare('SELECT security_question1, security_question2 FROM users WHERE email = ? LIMIT 1');
+    $stmt->execute([$email]);
+    $row = $stmt->fetch();
+    $allowedQuestions = bdr_security_questions();
+    if (!$row || empty($row['security_question1']) || empty($row['security_question2'])
+        || !isset($allowedQuestions[$row['security_question1']]) || !isset($allowedQuestions[$row['security_question2']])) {
+        http_response_code(404);
+        echo json_encode(['status' => 'error', 'message' => 'No password reset is available for that email. Please visit the barangay hall or ask an administrator.']);
+        exit;
+    }
+    echo json_encode(['status' => 'ok', 'questions' => [
+        'q1' => $allowedQuestions[$row['security_question1']],
+        'q2' => $allowedQuestions[$row['security_question2']],
+    ]]);
+    exit;
+}
+
+// Step 2: verify answers and set the new password. Throttled per email.
+if ($action === 'confirm-reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim(strtolower($_POST['email'] ?? ''));
+    $answer1 = $_POST['answer1'] ?? '';
+    $answer2 = $_POST['answer2'] ?? '';
+    $newPassword = $_POST['new_password'] ?? '';
+
+    $attempts = $_SESSION['pw_reset_attempts'][$email] ?? ['count' => 0, 'first' => time()];
+    if ($attempts['count'] >= 5 && (time() - $attempts['first']) < 900) {
+        http_response_code(429);
+        echo json_encode(['status' => 'error', 'message' => 'Too many attempts. Try again in 15 minutes or visit the barangay hall.']);
+        exit;
+    }
+
+    $stmt = $pdo->prepare('SELECT id, security_answer1_hash, security_answer2_hash FROM users WHERE email = ? LIMIT 1');
+    $stmt->execute([$email]);
+    $row = $stmt->fetch();
+    $valid = $row && !empty($row['security_answer1_hash']) && !empty($row['security_answer2_hash'])
+        && password_verify(bdr_normalize_answer($answer1), $row['security_answer1_hash'])
+        && password_verify(bdr_normalize_answer($answer2), $row['security_answer2_hash']);
+    if (!$valid) {
+        $attempts['count']++;
+        $_SESSION['pw_reset_attempts'][$email] = $attempts;
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Security answers do not match.']);
+        exit;
+    }
+
+    if (strlen($newPassword) < 8) {
+        http_response_code(422);
+        echo json_encode(['status' => 'error', 'message' => 'Password must be at least 8 characters.']);
+        exit;
+    }
+
+    $stmt = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+    $stmt->execute([password_hash($newPassword, PASSWORD_DEFAULT), $row['id']]);
+    unset($_SESSION['pw_reset_attempts'][$email]);
+    echo json_encode(['status' => 'ok', 'message' => 'Password reset. You can now log in.']);
+    exit;
 }
 
 // User is logging in

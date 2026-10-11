@@ -112,6 +112,22 @@ function bdr_require_write_csrf(): void
     }
 }
 
+function bdr_security_questions(): array
+{
+    return [
+        'pet' => 'What is the name of your first pet?',
+        'city' => 'In what city were you born?',
+        'friend' => 'What is the name of your childhood best friend?',
+        'food' => 'What is your favorite food?',
+        'school' => 'What is the name of your elementary school?',
+    ];
+}
+
+function bdr_normalize_answer(string $answer): string
+{
+    return mb_strtolower(trim($answer));
+}
+
 function bdr_base_path(): string
 {
     static $base = null;

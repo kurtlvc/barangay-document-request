@@ -9,7 +9,7 @@ $name = $_SESSION['name'] ?? 'Administrator';
 $basePath = '..';
 
 $requestReport = $pdo->query("SELECT DATE(request_date) AS date FROM requests")->fetchAll();
-$documentReport = $pdo->query("SELECT DATE(q.request_date) AS date, d.document_name AS document, 1 AS requests, IF(LOWER(q.status) = 'released', d.fee, 0) AS fee FROM requests q JOIN document_types d ON d.document_id = q.document_id")->fetchAll();
+$documentReport = $pdo->query("SELECT DATE(q.request_date) AS date, d.document_name AS document, 1 AS requests, IF(p.payment_id IS NOT NULL, p.amount, 0) AS fee FROM requests q JOIN document_types d ON d.document_id = q.document_id LEFT JOIN payments p ON p.request_id = q.request_id")->fetchAll();
 $residentReport = $pdo->query("SELECT DATE(created_at) AS date FROM residents")->fetchAll();
 $reportFrom = date('Y-m-01');
 $reportTo = date('Y-m-t');

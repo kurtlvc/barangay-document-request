@@ -21,13 +21,11 @@ if (isset($_SESSION['user_id'])) {
     <title><?= htmlspecialchars($pageTitle) ?> — Barangay Document Requests</title>
     <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="./assets/css/bootstrap-icons/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/styles.css">
     <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') ?>">
-    <script>try{if(localStorage.getItem('dokubayan-theme')==='dark')document.documentElement.dataset.theme='dark';}catch(e){}</script>
+    <script src="./assets/js/theme-init.js"></script>
 </head>
 <body>
-    <script>if(document.documentElement.dataset.theme==='dark')document.body.dataset.theme='dark';</script>
     <nav class="navbar navbar-expand-lg p-3 fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand fw-semibold" href="index.php"> <img src="logo.png" alt="DokuBayan"> DokuBayan</a>
@@ -68,7 +66,7 @@ if (isset($_SESSION['user_id'])) {
                                 </div>
                             </div>
                             <div class="mb-3 d-flex justify-content-end">
-                                <a href="#" class="forgotpass">Forgot Password?</a>
+                                <button type="button" class="btn btn-link forgotpass p-0" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Forgot Password?</button>
                             </div>
                             <button type="submit" class="btn btn-login col-12">Login to Account</button>
                             <p id="loginMessage" class="visually-hidden" role="status" aria-live="polite"></p>
@@ -142,6 +140,41 @@ if (isset($_SESSION['user_id'])) {
                                         </div>
                                     </div>
                                 </div>
+                                <p class="helper-text mt-4 mb-3">Account recovery — answer these if you ever forget your password. No email or text message is needed.</p>
+                                <div class="row mb-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="sq1Input" class="form-label">Security Question 1 <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="sq1Input" name="security_q1" required>
+                                            <option value="" selected disabled>Choose a question</option>
+                                            <option value="pet">What is the name of your first pet?</option>
+                                            <option value="city">In what city were you born?</option>
+                                            <option value="friend">What is the name of your childhood best friend?</option>
+                                            <option value="food">What is your favorite food?</option>
+                                            <option value="school">What is the name of your elementary school?</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="sqAnswer1Input" class="form-label">Answer 1 <span class="text-danger">*</span></label>
+                                        <input type="text" name="security_a1" class="form-control" id="sqAnswer1Input" placeholder="Your answer" maxlength="100" autocomplete="off" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="sq2Input" class="form-label">Security Question 2 <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="sq2Input" name="security_q2" required>
+                                            <option value="" selected disabled>Choose a different question</option>
+                                            <option value="pet">What is the name of your first pet?</option>
+                                            <option value="city">In what city were you born?</option>
+                                            <option value="friend">What is the name of your childhood best friend?</option>
+                                            <option value="food">What is your favorite food?</option>
+                                            <option value="school">What is the name of your elementary school?</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="sqAnswer2Input" class="form-label">Answer 2 <span class="text-danger">*</span></label>
+                                        <input type="text" name="security_a2" class="form-control" id="sqAnswer2Input" placeholder="Your answer" maxlength="100" autocomplete="off" required>
+                                    </div>
+                                </div>
                             </section>
                         </form>
                         <div class="register-actions pt-4 d-flex justify-content-between">
@@ -153,6 +186,64 @@ if (isset($_SESSION['user_id'])) {
             </div>
         </section>
     </main>
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="forgotPasswordTitle">Reset Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger small mb-0" id="forgotError" role="alert" hidden></p>
+                    <div id="forgotStepEmail">
+                        <p class="text-muted-soft small mb-3">Enter your account email to load your security questions. No email or text message is sent.</p>
+                        <label for="forgotEmailInput" class="form-label">Email address</label>
+                        <input type="email" class="form-control" id="forgotEmailInput" placeholder="juandelacruz@email.com" autocomplete="email">
+                    </div>
+                    <div id="forgotStepReset" class="d-none">
+                        <div class="mb-3">
+                            <label for="forgotAnswer1Input" class="form-label" id="forgotQ1Label">Security question 1</label>
+                            <input type="text" class="form-control" id="forgotAnswer1Input" maxlength="100" autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label for="forgotAnswer2Input" class="form-label" id="forgotQ2Label">Security question 2</label>
+                            <input type="text" class="form-control" id="forgotAnswer2Input" maxlength="100" autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label for="forgotNewPassInput" class="form-label">New password</label>
+                            <div class="password-field">
+                                <input type="password" class="form-control" id="forgotNewPassInput" placeholder="Min. 8 characters" minlength="8" autocomplete="new-password">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label for="forgotConfirmPassInput" class="form-label">Confirm new password</label>
+                            <div class="password-field">
+                                <input type="password" class="form-control" id="forgotConfirmPassInput" placeholder="Re-enter password" minlength="8" autocomplete="new-password">
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" id="forgotCantAnswerBtn">Forgot your answers? Request barangay assistance</button>
+                        </div>
+                    </div>
+                    <div id="forgotStepRequest" class="d-none">
+                        <div class="alert alert-info py-2 small mb-3">
+                            Submit a reset request to the barangay staff queue. Bring a valid ID when visiting the barangay hall.
+                        </div>
+                        <div class="mb-3">
+                            <label for="forgotReasonInput" class="form-label">Reason / Message (Optional)</label>
+                            <textarea class="form-control" id="forgotReasonInput" rows="2" placeholder="e.g. Forgot answers to security questions"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-brand" id="forgotFindBtn">Find Account</button>
+                    <button type="button" class="btn btn-brand d-none" id="forgotResetBtn">Reset Password</button>
+                    <button type="button" class="btn btn-brand d-none" id="forgotSubmitRequestBtn">Submit Request</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="toast-container position-fixed top-0 end-0 p-3">
         <div id="loginToast" class="toast align-items-center border-0" role="status" aria-live="polite" aria-atomic="true">
             <div class="d-flex align-items-center gap-2 p-2">

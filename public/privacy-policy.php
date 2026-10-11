@@ -10,20 +10,18 @@
     <title><?= htmlspecialchars($pageTitle) ?> — DokuBayan | Barangay Document Requests</title>
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap-icons/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/styles.css">
-    <script>try{if(localStorage.getItem('dokubayan-theme')==='dark')document.documentElement.dataset.theme='dark';}catch(e){}</script>
+    <script src="<?= htmlspecialchars($basePath) ?>/assets/js/theme-init.js"></script>
 </head>
 <body>
-    <script>if(document.documentElement.dataset.theme==='dark')document.body.dataset.theme='dark';</script>
     <nav class="navbar navbar-expand-lg p-3 fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand fw-semibold" href="<?= htmlspecialchars($basePath) ?>/index.php"> <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan"> DokuBayan</a>
             <button type="button" class="btn ms-auto" id="themeToggle" aria-label="Toggle theme" title="Toggle theme"><i class="bi bi-moon-fill"></i></button>
         </div>
     </nav>
-    <main class="resident-content flex-grow-1 overflow-auto p-3 p-lg-4" style="padding-top: 6.5rem !important;">
-        <div class="panel p-3 p-md-4 p-lg-5 mx-auto" style="max-width: 880px;">
+    <main class="resident-content flex-grow-1 overflow-auto p-3 p-lg-4 legal-page-content">
+        <div class="panel p-3 p-md-4 p-lg-5 mx-auto legal-panel">
             <span class="eyebrow-badge p-1 rounded">DOKUBAYAN</span>
             <h2 class="heading-green fw-bold mt-3">Privacy Policy</h2>
             <p class="text-muted-soft small">Last updated: October 2026</p>

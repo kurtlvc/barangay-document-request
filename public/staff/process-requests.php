@@ -16,7 +16,7 @@ $statusLabels = [
     'rejected' => 'Rejected',
 ];
 
-$requests = $pdo->query("SELECT CONCAT(r.first_name, ' ', r.last_name) AS name, CONCAT('REQ-', q.request_id) AS ref, q.request_id, d.document_name AS doc, DATE_FORMAT(q.request_date, '%b %e, %Y') AS date, CASE LOWER(q.status) WHEN 'ready for release' THEN 'ready' WHEN 'released' THEN 'claimed' ELSE LOWER(q.status) END AS status FROM requests q JOIN residents r ON r.resident_id = q.resident_id JOIN document_types d ON d.document_id = q.document_id ORDER BY q.request_date DESC, q.request_id DESC")->fetchAll();
+$requests = $pdo->query("SELECT CONCAT(r.first_name, ' ', r.last_name) AS name, CONCAT('REQ-', q.request_id) AS ref, q.request_id, d.document_name AS doc, DATE_FORMAT(q.request_date, '%b %e, %Y') AS date, DATE_FORMAT(q.request_date, '%Y-%m-%d %H:%i:%s') AS filed, CASE LOWER(q.status) WHEN 'ready for release' THEN 'ready' WHEN 'released' THEN 'claimed' ELSE LOWER(q.status) END AS status FROM requests q JOIN residents r ON r.resident_id = q.resident_id JOIN document_types d ON d.document_id = q.document_id ORDER BY q.request_date DESC, q.request_id DESC")->fetchAll();
 
 // Sort so the requests most needing attention float to the top.
 $order = ['pending' => 1, 'processing' => 2, 'ready' => 3, 'claimed' => 4];
@@ -58,7 +58,9 @@ usort($requests, fn($a, $b) => ($order[$a['status']] ?? 9) <=> ($order[$b['statu
                         <tr>
                             <th>Resident</th>
                             <th>Document Type</th>
-                            <th class="text-center">Date Filed</th>
+                            <th class="text-center">Date Filed
+                                <button type="button" class="sort-caret" id="reqDateSort" aria-label="Sort by date filed"><i class="bi bi-caret-down-fill"></i></button>
+                            </th>
                             <th class="text-center">Status</th>
                             <th class="text-center">Action</th>
                         </tr>
@@ -67,7 +69,7 @@ usort($requests, fn($a, $b) => ($order[$a['status']] ?? 9) <=> ($order[$b['statu
                         <?php foreach ($requests as $r):
                             $blob = strtolower($r['name'] . ' ' . $r['ref'] . ' ' . $r['doc']);
                         ?>
-                        <tr data-status="<?= htmlspecialchars($r['status']) ?>" data-search="<?= htmlspecialchars($blob) ?>">
+                        <tr data-status="<?= htmlspecialchars($r['status']) ?>" data-search="<?= htmlspecialchars($blob) ?>" data-date="<?= htmlspecialchars($r['filed']) ?>">
                             <td class="fw-semibold heading-green">
                                 <?= htmlspecialchars($r['name']) ?><br>
                                 <small class="text-muted-soft fw-normal"><?= htmlspecialchars($r['ref']) ?></small>

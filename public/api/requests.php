@@ -10,7 +10,7 @@ $validStatuses = ['Pending', 'Processing', 'Ready for Release', 'Released', 'Rej
 
 function request_row(PDO $pdo, int $requestId, ?int $residentId = null): array|false
 {
-    $sql = 'SELECT q.request_id, q.request_date, q.status, q.remarks, q.purpose, q.resident_id, q.document_id,
+    $sql = 'SELECT q.request_id, q.request_date, q.status, q.remarks, q.purpose, q.resident_id, q.document_id, q.amount_due,
                    d.document_number, d.document_name, d.processing_days,
                    CONCAT(r.first_name, " ", r.last_name) AS resident_name, r.address, r.contact_number,
                    p.name AS processed_by_name
@@ -116,6 +116,48 @@ if ($method === 'POST' && ($data['action'] ?? '') === 'update-purpose') {
     }
 }
 
+if ($method === 'POST' && ($data['action'] ?? '') === 'mark-paid') {
+    bdr_require_auth(['staff', 'admin']);
+    $requestId = filter_var($data['request_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($requestId === false) bdr_json_response(['status' => 'error', 'message' => 'A valid request ID is required.'], 422);
+    $orNumber = trim($data['or_number'] ?? '');
+    if ($orNumber === '') bdr_json_response(['status' => 'error', 'message' => 'An O.R. number is required.'], 422);
+    if (mb_strlen($orNumber) > 50) bdr_json_response(['status' => 'error', 'message' => 'O.R. number must be 50 characters or fewer.'], 422);
+
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare('SELECT request_id, status, amount_due FROM requests WHERE request_id = ? FOR UPDATE');
+        $stmt->execute([$requestId]);
+        $request = $stmt->fetch();
+        if (!$request) {
+            $pdo->rollBack();
+            bdr_json_response(['status' => 'error', 'message' => 'Request not found.'], 404);
+        }
+        if ($request['status'] !== 'Ready for Release') {
+            $pdo->rollBack();
+            bdr_json_response(['status' => 'error', 'message' => 'Payment can only be recorded for requests ready for release.'], 409);
+        }
+        if ((float) $request['amount_due'] <= 0) {
+            $pdo->rollBack();
+            bdr_json_response(['status' => 'error', 'message' => 'No payment is required for this request.'], 409);
+        }
+        $paid = $pdo->prepare('SELECT payment_id FROM payments WHERE request_id = ?');
+        $paid->execute([$requestId]);
+        if ($paid->fetch()) {
+            $pdo->rollBack();
+            bdr_json_response(['status' => 'error', 'message' => 'Payment is already recorded for this request.'], 409);
+        }
+
+        $stmt = $pdo->prepare('INSERT INTO payments (request_id, amount, method, or_number, received_by) VALUES (?, ?, "cash", ?, ?)');
+        $stmt->execute([$requestId, $request['amount_due'], $orNumber, $user['id']]);
+        $pdo->commit();
+        bdr_json_response(['status' => 'ok', 'message' => 'Payment recorded.']);
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        bdr_json_response(['status' => 'error', 'message' => 'Unable to record the payment.'], 500);
+    }
+}
+
 if ($method === 'POST' && ($data['action'] ?? '') !== 'update-status') {
     if ($user['role'] !== 'resident') bdr_json_response(['status' => 'error', 'message' => 'Only residents can submit requests.'], 403);
     if (!$user['resident_id'] || $user['resident_status'] !== 'verified') bdr_json_response(['status' => 'error', 'message' => 'Your resident profile must be verified before submitting a request.'], 403);
@@ -124,13 +166,14 @@ if ($method === 'POST' && ($data['action'] ?? '') !== 'update-status') {
     $purpose = trim($data['purpose'] ?? '');
     if ($purpose === '') bdr_json_response(['status' => 'error', 'message' => 'Purpose of request is required.'], 422);
     if ($documentId === false) bdr_json_response(['status' => 'error', 'message' => 'Choose a document type.'], 422);
-    $document = $pdo->prepare('SELECT document_id FROM document_types WHERE document_id = ? AND is_active = 1');
+    $document = $pdo->prepare('SELECT document_id, fee FROM document_types WHERE document_id = ? AND is_active = 1');
     $document->execute([$documentId]);
-    if (!$document->fetch()) bdr_json_response(['status' => 'error', 'message' => 'Document type not found.'], 404);
+    $documentRow = $document->fetch();
+    if (!$documentRow) bdr_json_response(['status' => 'error', 'message' => 'Document type not found.'], 404);
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('INSERT INTO requests (resident_id, document_id, status, remarks, purpose) VALUES (?, ?, "Pending", ?, ?)');
-        $stmt->execute([$user['resident_id'], $documentId, $remarks ?: null, $purpose]);
+        $stmt = $pdo->prepare('INSERT INTO requests (resident_id, document_id, status, remarks, purpose, amount_due) VALUES (?, ?, "Pending", ?, ?, ?)');
+        $stmt->execute([$user['resident_id'], $documentId, $remarks ?: null, $purpose, $documentRow['fee']]);
         $newRequestId = (int) $pdo->lastInsertId();
         $history = $pdo->prepare('INSERT INTO request_history (request_id, status, remarks, updated_by) VALUES (?, "Pending", ?, ?)');
         $history->execute([$newRequestId, $remarks ?: 'Request submitted.', $user['id']]);
@@ -152,6 +195,11 @@ if (($method === 'PATCH' || $method === 'PUT') || ($method === 'POST' && ($data[
     $existingRequest = request_row($pdo, $requestId);
     if (!$existingRequest) bdr_json_response(['status' => 'error', 'message' => 'Request not found.'], 404);
     if ($existingRequest['status'] === 'Cancelled') bdr_json_response(['status' => 'error', 'message' => 'Cancelled requests cannot be processed.'], 409);
+    if ($status === 'Released' && (float) ($existingRequest['amount_due'] ?? 0) > 0) {
+        $paid = $pdo->prepare('SELECT payment_id FROM payments WHERE request_id = ?');
+        $paid->execute([$requestId]);
+        if (!$paid->fetch()) bdr_json_response(['status' => 'error', 'message' => 'Record the cash payment (O.R. number) before releasing this document.'], 422);
+    }
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare('UPDATE requests SET status = ?, remarks = ?, processed_by = ? WHERE request_id = ?');

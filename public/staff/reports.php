@@ -13,6 +13,9 @@ $summary = $pdo->query("SELECT COUNT(*) AS received, SUM(LOWER(status) = 'releas
 $turnaround = $pdo->query("SELECT AVG(DATEDIFF(h.updated_at, q.request_date)) AS avg_days, AVG(DATEDIFF(h.updated_at, q.request_date) <= d.processing_days) AS on_time FROM requests q JOIN document_types d ON d.document_id=q.document_id JOIN request_history h ON h.request_id=q.request_id AND LOWER(h.status)='released'")->fetch() ?: [];
 $summary['avg_turnaround'] = number_format((float) ($turnaround['avg_days'] ?? 0), 1) . ' days';
 $summary['on_time_pct'] = (int) round(100 * (float) ($turnaround['on_time'] ?? 0));
+$fees = $pdo->query("SELECT COALESCE(SUM(amount), 0) AS collected, COUNT(*) AS paid FROM payments")->fetch() ?: [];
+$summary['fees_collected'] = (float) ($fees['collected'] ?? 0);
+$summary['fees_count'] = (int) ($fees['paid'] ?? 0);
 $monthly = $pdo->query("SELECT DATE_FORMAT(request_date, '%b') AS label, COUNT(*) AS value FROM requests WHERE request_date >= DATE_SUB(CURRENT_DATE, INTERVAL 5 MONTH) GROUP BY YEAR(request_date), MONTH(request_date), DATE_FORMAT(request_date, '%b') ORDER BY YEAR(request_date), MONTH(request_date)")->fetchAll();
 $byType = $pdo->query("SELECT d.document_name AS label, COUNT(q.request_id) AS value, CONCAT(d.processing_days, IF(d.processing_days=1, ' business day', ' business days')) AS processing FROM document_types d LEFT JOIN requests q ON q.document_id=d.document_id GROUP BY d.document_id, d.document_name, d.processing_days ORDER BY value DESC, d.document_name")->fetchAll();
 
@@ -76,6 +79,15 @@ reset($points);
                     <div class="stat-card h-100 px-3 py-3 border-end-0">
                         <div class="stat-card-header text-secondary mb-2">On-Time Rate</div>
                         <div class="stat-card-value"><?= (int) $summary['on_time_pct'] ?>%</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg">
+                    <div class="stat-card h-100 px-3 py-3 border-end-0">
+                        <div class="stat-card-header text-secondary mb-2">Fees Collected</div>
+                        <div class="d-flex align-items-end gap-2">
+                            <div class="stat-card-value">₱<?= number_format((float) $summary['fees_collected'], 2) ?></div>
+                            <div class="stat-card-meta"><?= (int) $summary['fees_count'] ?> paid</div>
+                        </div>
                     </div>
                 </div>
             </div>

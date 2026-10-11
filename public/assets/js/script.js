@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const navbar = document.getElementById("navbarCollapse");
     const links = navbar ? navbar.querySelectorAll(".nav-link") : [];
+    const toggler = document.querySelector('[data-bs-target="#navbarCollapse"]');
 
     links.forEach(function (link) {
         link.addEventListener("click", function () {
@@ -8,6 +9,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
             bsCollapse.hide();
         });
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!navbar || !navbar.classList.contains("show")) return;
+        if (navbar.contains(event.target)) return;
+        if (toggler && toggler.contains(event.target)) return;
+        bootstrap.Collapse.getOrCreateInstance(navbar).hide();
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key !== "Escape" || !navbar || !navbar.classList.contains("show")) return;
+        bootstrap.Collapse.getOrCreateInstance(navbar).hide();
     });
 
     const storedTheme = localStorage.getItem('dokubayan-theme');

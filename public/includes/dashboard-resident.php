@@ -6,7 +6,8 @@ $isVerified = ($status === 'verified');
 ?>
 <main class="resident-content flex-grow-1 overflow-auto p-3 p-lg-4">
 <div class="dashboard-resident">
-    <!-- Verification Status Banner -->
+    <!-- Verification Status Banner (pending residents only) -->
+    <?php if (!$isVerified): ?>
     <div class="verify-banner d-flex align-items-center justify-content-between gap-3 mb-4 p-3 flex-wrap">
         <div class="d-flex align-items-center">
             <i class="bi <?= $isVerified ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill' ?> fs-3 me-3 flex-shrink-0"></i>
@@ -23,6 +24,7 @@ $isVerified = ($status === 'verified');
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <div class="stats-panel mb-4">
         <div class="row g-0">

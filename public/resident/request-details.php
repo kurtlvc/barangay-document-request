@@ -10,7 +10,7 @@ $basePath = '..';
 $pageScripts = ['assets/js/request-details.js'];
 
 $requestId = filter_var($_GET['req'] ?? null, FILTER_VALIDATE_INT);
-$stmt = $pdo->prepare('SELECT q.request_id, q.request_date, q.status, q.remarks, q.purpose, d.document_name, d.fee, d.requirements FROM requests q JOIN document_types d ON d.document_id = q.document_id WHERE q.request_id = ? AND q.resident_id = ?');
+$stmt = $pdo->prepare('SELECT q.request_id, q.request_date, q.status, q.remarks, q.purpose, q.amount_due, d.document_name, d.fee, d.requirements, p.or_number, p.paid_at FROM requests q JOIN document_types d ON d.document_id = q.document_id LEFT JOIN payments p ON p.request_id = q.request_id WHERE q.request_id = ? AND q.resident_id = ?');
 $stmt->execute([$requestId ?: 0, $_SESSION['resident_id'] ?? 0]);
 $request = $stmt->fetch();
 if ($request) {
@@ -78,9 +78,9 @@ if (!$request) {
             </div>
         </div>
 
-        <?php if (in_array(strtolower($request['status']), ['approved', 'ready for release'], true)):
+        <?php if (in_array(strtolower($request['status']), ['approved', 'ready for release', 'released', 'claimed'], true)):
             $claimRequirements = array_values(array_filter(array_map('trim', explode(',', (string) ($request['requirements'] ?? '')))));
-            $claimFee = (float) ($request['fee'] ?? 0);
+            $claimFee = (float) ($request['amount_due'] ?? $request['fee'] ?? 0);
         ?>
             <div class="panel p-3 p-md-4 mt-4">
                 <h4 class="heading-green fw-bold mb-3"><i class="bi bi-collection me-2"></i>How to Claim</h4>
@@ -100,7 +100,16 @@ if (!$request) {
                     <p class="mb-3">A valid ID</p>
                 <?php endif; ?>
                 <p class="text-muted-soft mb-1">Fee</p>
-                <p class="fw-bold mb-0" style="color: var(--gold);"><?= $claimFee > 0 ? '₱' . number_format($claimFee, 2) : 'No fee' ?></p>
+                <p class="fw-bold mb-0 text-gold"><?= $claimFee > 0 ? '₱' . number_format($claimFee, 2) : 'No fee' ?></p>
+                <?php if ($claimFee > 0): ?>
+                    <?php if (!empty($request['or_number'])): ?>
+                        <p class="mt-3 mb-0"><span class="status-badge status-claimed"><i class="bi bi-check-circle-fill"></i> Paid</span></p>
+                        <p class="text-muted-soft small mb-0 mt-1">O.R. <?= htmlspecialchars($request['or_number']) ?><?= !empty($request['paid_at']) ? ' · ' . htmlspecialchars(date('M j, Y g:i A', strtotime($request['paid_at']))) : '' ?></p>
+                    <?php else: ?>
+                        <p class="mt-3 mb-0"><span class="status-badge status-pending">Unpaid</span></p>
+                        <p class="text-muted-soft small mb-0 mt-1">Please pay at the barangay hall when claiming.</p>
+                    <?php endif; ?>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
 

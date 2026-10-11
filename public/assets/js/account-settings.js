@@ -102,6 +102,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 wasVerified = false;
                 const statusInput = $('accountStatus');
                 if (statusInput) statusInput.value = 'Pending Verification';
+                const bannerIcon = $('accountVerifyIcon');
+                if (bannerIcon) bannerIcon.className = 'bi bi-exclamation-triangle-fill fs-3 flex-shrink-0';
+                const bannerTitle = $('accountVerifyTitle');
+                if (bannerTitle) bannerTitle.textContent = 'Resident Profile Pending Verification';
+                const bannerText = $('accountVerifyText');
+                if (bannerText) bannerText.textContent = 'Verify your profile at the barangay to unlock document requests. Changing your name or address later will require verification again.';
                 showAlert(alertEl, result.message || 'Profile updated. Your account is pending re-verification.', 'warning');
             } else {
                 showAlert(alertEl, result.message || 'Profile updated.', 'success');

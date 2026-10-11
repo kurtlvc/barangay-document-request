@@ -12,12 +12,10 @@
     <title><?= htmlspecialchars($pageTitle) ?> — DokuBayan |  Barangay Document Requests</title>
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap-icons/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/styles.css">
-    <script>try{if(localStorage.getItem('dokubayan-theme')==='dark')document.documentElement.dataset.theme='dark';}catch(e){}</script>
+    <script src="<?= htmlspecialchars($basePath) ?>/assets/js/theme-init.js"></script>
 </head>
 <body>
-    <script>if(document.documentElement.dataset.theme==='dark')document.body.dataset.theme='dark';</script>
     <nav class="navbar navbar-expand-lg p-3 fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand fw-semibold" href="<?= htmlspecialchars($basePath) ?>/index.php"> <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan"> DokuBayan</a>
@@ -27,7 +25,7 @@
                 </button>
             </div>
             <div class="navbar-menu-container justify-content-end collapse navbar-collapse" id="navbarCollapse">
-                <div class="navbar-nav align-items-end">
+                <div class="navbar-nav align-items-center align-items-lg-end">
                     <a href="#aboutpage" class="nav-item nav-link">About</a>
                     <a href="#howpage" class="nav-item nav-link">How it works</a>
                     <button type="button" class="btn ms-lg-2" id="themeToggle" aria-label="Toggle theme" title="Toggle theme"><i class="bi bi-moon-fill"></i></button>
@@ -71,8 +69,8 @@
         </section>
         
         <section class="about-page row pt-5" id="aboutpage">
-            <div class="about-img container col-md-5">
-                <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan Logo" class="img-fluid pt-5 ps-5">
+            <div class="about-img col-lg-5">
+                <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan Logo" class="img-fluid">
             </div>
             <div class="col-lg-6 p-4 p-lg-5 align-items-center">
                 <h2 class="fw-bold">ABOUT THE SYSTEM</h2>
@@ -101,31 +99,31 @@
                 <div class="first text-center">
                     <h2>1</h2>
                     <div class="d-flex justify-content-center">
-                        <div class="how-steps"><i class="bi-file-earmark-text-fill" style="font-size: 3.3rem;"></i></div>
+                        <div class="how-steps"><i class="bi-file-earmark-text-fill"></i></div>
                     </div>
                     <h4>Choose a document</h4>
                 </div>
-                    <span class="how-connector m-3"><i class="bi bi-arrow-right" style="font-size: 3.5rem;"></i></span>
+                    <span class="how-connector m-3"><i class="bi bi-arrow-right"></i></span>
                 <div class="second text-center">
                     <h2>2</h2>
                     <div class="d-flex justify-content-center">
-                        <div class="how-steps align-items-center"><i class="bi-send-fill" style="font-size: 3.5rem;"></i></div>
+                        <div class="how-steps align-items-center"><i class="bi-send-fill"></i></div>
                     </div>                        
                     <h4>Submit your request</h4>
                 </div>
-                    <span class="how-connector m-3"><i class="bi bi-arrow-right" style="font-size: 3.5rem;"></i></span>
+                    <span class="how-connector m-3"><i class="bi bi-arrow-right"></i></span>
                 <div class="third text-center">
                     <h2>3</h2>
                     <div class="d-flex justify-content-center">
-                        <div class="how-steps"><i class="bi-geo-alt-fill" style="font-size: 3.5rem;"></i></div>
+                        <div class="how-steps"><i class="bi-geo-alt-fill"></i></div>
                     </div>                        
                     <h4>Track request status</h4>
                 </div>
-                    <span class="how-connector m-3"><i class="bi bi-arrow-right" style="font-size: 3.5rem;"></i></span>
+                    <span class="how-connector m-3"><i class="bi bi-arrow-right"></i></span>
                 <div class="fourth text-center">
                     <h2>4</h2>
                     <div class="d-flex justify-content-center">
-                        <div class="how-steps"><i class="bi-save-fill" style="font-size: 3.3rem;"></i></div>
+                        <div class="how-steps"><i class="bi-save-fill"></i></div>
                     </div>                        
                     <h4>Claim your document</h4>
                 </div>
@@ -151,10 +149,10 @@
             </section>
             <p class="text-white text-center small">The official online service for requesting and tracking barangay documents removing long lines at the hall.</p>
             <hr>
-            <section class="copyright row px-5 ">
-                <p class="col-lg-9 sub-text"><i class="bi-c-circle"></i> 2026 Brgy. Mamatid - Local Government Unit. All rights reserved</p>
-                <a href="privacy-policy.php" class="col sub-text">Privacy Policy</a>
-                <a href="terms-of-use.php" class="col sub-text">Terms of Use</a>
+            <section class="copyright row px-3 px-md-5 gy-2 text-center text-lg-start">
+                <p class="col-12 col-lg-9 sub-text mb-2 mb-lg-0"><i class="bi-c-circle"></i> 2026 Brgy. Mamatid - Local Government Unit. All rights reserved</p>
+                <a href="privacy-policy.php" class="col-6 col-lg sub-text">Privacy Policy</a>
+                <a href="terms-of-use.php" class="col-6 col-lg sub-text">Terms of Use</a>
             </section>
             
         </div>

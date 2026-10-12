@@ -17,7 +17,12 @@ $reportTo = date('Y-m-t');
 
 <?php include __DIR__ . '/../page-layout/header.php' ?>
 <main class="flex-grow-1 overflow-auto p-3 p-lg-4">
-    <section class="panel-white p-4 mb-4">
+    <div class="print-only mb-3">
+        <h4 class="fw-bold mb-1" id="printReportTitle">Barangay Report</h4>
+        <p class="text-muted-soft mb-0"><span id="printReportPeriod"></span> · Generated <span id="printReportGenerated"></span></p>
+    </div>
+    <div id="reportMetrics" class="mb-4"></div>
+    <section class="panel-white p-4 mb-4" data-no-print>
         <div class="mb-3"><h5 class="fw-bold mb-1">Generate Barangay Report</h5>
             <p class="text-muted-soft mb-0">Review monthly service volume, new resident registrations, and document fees.</p>
         </div>
@@ -63,6 +68,7 @@ $reportTo = date('Y-m-t');
             </div>
             <span class="badge text-bg-light border" data-report-range><?= htmlspecialchars(date('M j, Y', strtotime($reportFrom)) . ' - ' . date('M j, Y', strtotime($reportTo))) ?></span>
         </div>
+        <div data-report-chart class="my-3"></div>
         <div class="table-responsive">
             <table class="table table-brand align-middle mb-0">
                 <thead>
@@ -116,6 +122,7 @@ $reportTo = date('Y-m-t');
             </div>
             <span class="badge text-bg-light border" data-report-range></span>
         </div>
+        <div data-report-chart class="my-3"></div>
         <div class="table-responsive">
             <table class="table table-brand align-middle mb-0">
                 <thead>

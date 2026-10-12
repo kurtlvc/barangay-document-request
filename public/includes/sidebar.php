@@ -14,7 +14,6 @@ $navItems = [
         ['icon' => '<i class="bi bi-house-fill"></i>','label' => 'Dashboard', 'href' => $basePath . '/staff/dashboard.php'],
         ['icon' => '<i class="bi bi-clipboard2-check-fill"></i>','label' => 'Process Requests', 'href' => $basePath . '/staff/process-requests.php'],
         ['icon' => '<i class="bi bi-collection-fill"></i>','label' => 'Release Management', 'href' => $basePath . '/staff/release-management.php'],
-        ['icon' => '<i class="bi bi-key-fill"></i>','label' => 'Password Resets', 'href' => $basePath . '/admin/password-resets.php'],
         ['icon' => '<i class="bi bi-bar-chart-fill"></i>','label' => 'Reports', 'href' => $basePath . '/staff/reports.php'],
     ],
     'admin' => [
@@ -38,7 +37,7 @@ $isVerifiedResident = ($role === 'resident') && (($_SESSION['resident_status'] ?
 <aside class="sidebar col-lg-3 d-none d-lg-flex app-shell overflow-hidden">  
     <div class="sidebar-content p-3 d-flex flex-column h-100">
         <div class="sidebar-header">
-            <a class="navbar-brand fw-semibold m-3" href="<?= htmlspecialchars($basePath) ?>/"><img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan"> DokuBayan </a>
+            <a class="navbar-brand fw-semibold m-3" href="<?= htmlspecialchars($basePath) ?>/dashboard.php"><img src="<?= htmlspecialchars($basePath) ?>/assets/img/logo.png" alt="DokuBayan"> DokuBayan </a>
         </div>
         <nav class="sidebar-btn d-flex flex-column gap-1 px-3 pt-4" aria-label="Main navigation">
             <?php foreach ($navItems[$role] ?? [] as $item):
@@ -64,6 +63,9 @@ $isVerifiedResident = ($role === 'resident') && (($_SESSION['resident_status'] ?
                         <i class="bi <?= $isVerifiedResident ? 'bi-patch-check-fill' : 'bi-hourglass-split' ?>"></i>
                         <?= $isVerifiedResident ? 'Verified Resident' : 'Pending Verification' ?>
                     </span>
+                    <?php if (!empty($_SESSION['resident_id'])): ?>
+                        <small class="d-block text-muted mt-1"><?= htmlspecialchars(bdr_resident_code($_SESSION['resident_id']), ENT_QUOTES, 'UTF-8') ?></small>
+                    <?php endif; ?>
                 <?php else: ?>
                     <p class="profile-card-role"><?= htmlspecialchars($roleBadge[$role] ?? ucfirst($role)) ?></p>
                 <?php endif; ?>
@@ -75,7 +77,7 @@ $isVerifiedResident = ($role === 'resident') && (($_SESSION['resident_status'] ?
 <!-- Mobile -->
 <div class="offcanvas offcanvas-start d-lg-none d-flex flex-column app-shell" tabindex="-1" id="sidebar">
     <div class="offcanvas-header d-flex justify-content-between">
-        <a class="navbar-brand fw-semibold m-3" href="<?= htmlspecialchars($basePath) ?>/"><img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan"> DokuBayan </a>
+        <a class="navbar-brand fw-semibold m-3" href="<?= htmlspecialchars($basePath) ?>/dashboard.php"><img src="<?= htmlspecialchars($basePath) ?>/assets/img/logo.png" alt="DokuBayan"> DokuBayan </a>
         <button type="button" class="btn text-light" data-bs-dismiss="offcanvas" aria-label="Close"><i class="bi-x-lg"></i></button>
     </div>
     <nav class="offcanvas-nav d-flex flex-column gap-1 mx-4 pt-3" aria-label="Main navigation">
@@ -101,6 +103,9 @@ $isVerifiedResident = ($role === 'resident') && (($_SESSION['resident_status'] ?
                     <i class="bi <?= $isVerifiedResident ? 'bi-patch-check-fill' : 'bi-hourglass-split' ?>"></i>
                     <?= $isVerifiedResident ? 'Verified Resident' : 'Pending Verification' ?>
                 </span>
+                <?php if (!empty($_SESSION['resident_id'])): ?>
+                    <small class="d-block text-muted mt-1"><?= htmlspecialchars(bdr_resident_code($_SESSION['resident_id']), ENT_QUOTES, 'UTF-8') ?></small>
+                <?php endif; ?>
             <?php else: ?>
                 <p class="profile-card-role"><?= htmlspecialchars($roleBadge[$role] ?? ucfirst($role)) ?></p>
             <?php endif; ?>

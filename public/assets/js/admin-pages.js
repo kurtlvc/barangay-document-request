@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.dataset.email = emailInput.value.trim();
             row.dataset.contact = contactInput.value.trim();
             row.dataset.address = addressInput.value.trim();
-            row.dataset.search = `${row.dataset.name} ${row.dataset.email} ${row.dataset.address}`.toLowerCase();
+            row.dataset.search = `${row.dataset.name} ${row.dataset.email} ${row.dataset.address} ${row.dataset.code || ''}`.toLowerCase();
             row.cells[0].replaceWith(makeIdentityCell(row.dataset.name, row.dataset.email));
             row.cells[1].textContent = row.dataset.contact;
             row.cells[2].textContent = row.dataset.address;
@@ -504,9 +504,16 @@ document.addEventListener('DOMContentLoaded', () => {
             row.dataset.requirements = rawRequirements;
             row.dataset.turnaround = values.turnaround;
             row.dataset.status = values.status.toLowerCase();
-            row.dataset.search = `${values.name} ${rawRequirements}`.toLowerCase();
+            row.dataset.search = `${values.name} ${values.number} ${rawRequirements}`.toLowerCase();
             row.replaceChildren();
-            row.append(makeCell(values.name, 'fw-semibold heading-green'));
+            const nameCell = document.createElement('td');
+            nameCell.className = 'fw-semibold heading-green';
+            nameCell.textContent = values.name;
+            const codeSmall = document.createElement('small');
+            codeSmall.className = 'd-block text-muted-soft fw-normal font-monospace';
+            codeSmall.textContent = values.number;
+            nameCell.append(document.createElement('br'), codeSmall);
+            row.append(nameCell);
             row.append(makeCell(`₱${Number(values.fee).toFixed(2)}`, 'text-nowrap'));
             row.append(makeCell(rawRequirements || 'N/A', 'text-muted-soft'));
             row.append(makeCell(`${values.turnaround} business day${Number(values.turnaround) === 1 ? '' : 's'}`, 'text-muted-soft text-nowrap'));
@@ -538,12 +545,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (emptyRow) emptyRow.hidden = visible > 0;
         }
 
+        function nextDocumentCode() {
+            let best = null;
+            rows.querySelectorAll('tr[data-name]').forEach(row => {
+                const match = /^([A-Za-z-]+)(\d+)$/.exec((row.dataset.number || '').trim());
+                if (!match) return;
+                const num = parseInt(match[2], 10);
+                if (!best || num > best.num) best = { prefix: match[1], width: match[2].length, num };
+            });
+            if (!best) return 'DOC-001';
+            return `${best.prefix}${String(best.num + 1).padStart(best.width, '0')}`;
+        }
+
         modalElement.addEventListener('show.bs.modal', event => {
             if (event.relatedTarget?.hasAttribute('data-bs-target')) {
                 form.reset();
                 form.classList.remove('was-validated');
                 form.dataset.mode = 'create';
                 form._editingRow = null;
+                numberInput.value = nextDocumentCode();
+                numberInput.readOnly = true;
                 document.getElementById('documentModalTitle').textContent = 'Add Document Type';
                 form.querySelector('[type="submit"]').textContent = 'Save Document Type';
             }
@@ -584,6 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? await apiRequest(`../api/documents.php?document_id=${encodeURIComponent(values.id)}`, 'PUT', payload)
                     : await apiRequest('../api/documents.php', 'POST', payload);
                 if (saved.document_id) values.id = saved.document_id;
+                if (saved.document_number) values.number = saved.document_number;
             } catch (error) { showAdminToast(error.message, 'danger'); return; }
             if (form.dataset.mode === 'edit' && form._editingRow) {
                 values.status = form._editingRow.dataset.status === 'active' ? 'Active' : 'Deactivated';
@@ -605,6 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 form.dataset.mode = 'edit';
                 form._editingRow = row;
                 numberInput.value = row.dataset.number;
+                numberInput.readOnly = true;
                 nameInput.value = row.dataset.name;
                 feeInput.value = row.dataset.fee;
                 requirementsInput.value = row.dataset.requirements;
@@ -724,6 +747,45 @@ document.addEventListener('DOMContentLoaded', () => {
             metrics.replaceChildren(row);
         }
 
+        function renderLineChart(section, grouped) {
+            const slot = section.querySelector('[data-report-chart]');
+            if (!slot) return;
+            const entries = [...grouped.entries()].sort((left, right) => (left[0] < right[0] ? -1 : 1));
+            if (!entries.length) { slot.replaceChildren(); return; }
+            const chartW = 600, chartH = 200, padL = 16, padR = 16, padTop = 16, padBottom = 26;
+            const values = entries.map(([, item]) => item.count);
+            const maxVal = Math.max(...values, 1);
+            const minVal = Math.min(...values, 0);
+            const range = Math.max(1, maxVal - minVal);
+            const stepX = entries.length > 1 ? (chartW - padL - padR) / (entries.length - 1) : 0;
+            const points = entries.map(([key, item], index) => {
+                const x = padL + stepX * index;
+                const y = padTop + (chartH - padTop - padBottom) * (1 - (item.count - minVal) / range);
+                const [year, month] = key.split('-').map(Number);
+                const label = `${new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short' })} '${String(year).slice(2)}`;
+                return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, label, value: item.count };
+            });
+            const line = points.map(point => `${point.x},${point.y}`).join(' ');
+            const floorY = chartH - padBottom + 8;
+            const area = points.length ? `${line} ${points[points.length - 1].x},${floorY} ${points[0].x},${floorY}` : '';
+            let grid = '';
+            for (let i = 0; i <= 4; i++) {
+                const gridY = Math.round((padTop + (i * (chartH - padTop - padBottom)) / 4) * 10) / 10;
+                grid += `<line x1="0" y1="${gridY}" x2="${chartW}" y2="${gridY}"></line>`;
+            }
+            const dots = points.map(point => `<circle cx="${point.x}" cy="${point.y}" r="5"></circle>`).join('');
+            const flags = points.map(point => `<text x="${point.x}" y="${point.y - 12}">${point.value}</text>`).join('');
+            const ticks = points.map(point => `<text x="${point.x}" y="${chartH - 6}">${point.label}</text>`).join('');
+            slot.innerHTML = `<svg viewBox="0 0 ${chartW} ${chartH}" width="100%" height="240" role="img">`
+                + `<g stroke="var(--border-soft)" stroke-width="1">${grid}</g>`
+                + (points.length ? `<polygon points="${area}" fill="var(--dark-green)" opacity="0.08" stroke="none"></polygon>`
+                + `<polyline points="${line}" fill="none" stroke="var(--dark-green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>`
+                + `<g fill="#ffffff" stroke="var(--dark-green)" stroke-width="3">${dots}</g>`
+                + `<g fill="var(--text-dark)" font-size="13" font-weight="700" text-anchor="middle" font-family="Poppins, sans-serif">${flags}</g>`
+                + `<g fill="var(--light-gray)" font-size="11" text-anchor="middle" font-family="Poppins, sans-serif">${ticks}</g>` : '')
+                + `</svg>`;
+        }
+
         function applyDateRange() {
             const from = fromInput.value;
             const to = toInput.value;
@@ -781,6 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     summaryBody.append(row);
                 }
                 if (section.dataset.reportSection === reportType.value) renderMetrics(section, grouped, total, from, to);
+                if (section.dataset.reportKind !== 'documents') renderLineChart(section, grouped);
             });
             return true;
         }
@@ -817,7 +880,19 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', () => {
                 if (!applyDateRange()) return;
                 if (button.dataset.reportExport === 'CSV') exportCsv();
-                else window.print();
+                else {
+                    const section = sections.find(item => item.dataset.reportSection === reportType.value);
+                    const titleEl = document.getElementById('printReportTitle');
+                    const periodEl = document.getElementById('printReportPeriod');
+                    const generatedEl = document.getElementById('printReportGenerated');
+                    if (titleEl && section) titleEl.textContent = section.dataset.reportTitle || 'Barangay Report';
+                    if (periodEl) periodEl.textContent = `${formatDate(fromInput.value)} – ${formatDate(toInput.value)}`;
+                    if (generatedEl) generatedEl.textContent = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+                    const previousTitle = document.title;
+                    document.title = `${section?.dataset.reportTitle || 'report'}-${fromInput.value}-to-${toInput.value}`;
+                    window.print();
+                    window.setTimeout(() => { document.title = previousTitle; }, 0);
+                }
             });
         });
         setReportView();

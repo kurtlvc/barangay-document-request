@@ -35,25 +35,52 @@ if (($method === 'PATCH' || $method === 'PUT' || $method === 'POST') && ($data['
     bdr_json_response(['status' => 'ok', 'message' => 'Document status updated.']);
 }
 
+function next_document_number(PDO $pdo): string
+{
+    $best = null;
+    foreach ($pdo->query('SELECT document_number FROM document_types')->fetchAll() as $row) {
+        if (!preg_match('/^([A-Za-z-]+)(\d+)$/', trim($row['document_number'] ?? ''), $matches)) {
+            continue;
+        }
+        $num = (int) $matches[2];
+        if ($best === null || $num > $best['num']) {
+            $best = ['prefix' => $matches[1], 'width' => strlen($matches[2]), 'num' => $num];
+        }
+    }
+    if ($best === null) {
+        return 'DOC-001';
+    }
+    return $best['prefix'] . str_pad((string) ($best['num'] + 1), $best['width'], '0', STR_PAD_LEFT);
+}
+
 if ($method === 'POST') {
-    $number = trim($data['document_number'] ?? '');
     $name = trim($data['document_name'] ?? '');
     $path = trim($data['file_path'] ?? '');
     $days = filter_var($data['processing_days'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
     $fee = filter_var($data['fee'] ?? 0, FILTER_VALIDATE_FLOAT);
-    if ($number === '' || $name === '' || $days === false || $fee === false || $fee < 0) bdr_json_response(['status' => 'error', 'message' => 'Document number, name, a nonnegative fee, and processing days are required.'], 422);
-    try {
-        $stmt = $pdo->prepare('INSERT INTO document_types (document_number, document_name, file_path, processing_days, fee, requirements) VALUES (?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$number, $name, $path ?: null, $days, $fee, trim($data['requirements'] ?? '') ?: null]);
-        bdr_json_response(['status' => 'ok', 'message' => 'Document type created.', 'document_id' => (int) $pdo->lastInsertId()], 201);
-    } catch (PDOException $e) {
-        bdr_json_response(['status' => 'error', 'message' => 'The document number is already in use.'], 409);
+    if ($name === '' || $days === false || $fee === false || $fee < 0) bdr_json_response(['status' => 'error', 'message' => 'Document name, a nonnegative fee, and processing days are required.'], 422);
+    for ($attempt = 0; $attempt < 2; $attempt++) {
+        $number = next_document_number($pdo);
+        try {
+            $stmt = $pdo->prepare('INSERT INTO document_types (document_number, document_name, file_path, processing_days, fee, requirements) VALUES (?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$number, $name, $path ?: null, $days, $fee, trim($data['requirements'] ?? '') ?: null]);
+            bdr_json_response(['status' => 'ok', 'message' => 'Document type created.', 'document_id' => (int) $pdo->lastInsertId(), 'document_number' => $number], 201);
+        } catch (PDOException $e) {
+            if ($attempt === 1 || ($e->errorInfo[0] ?? '') !== '23000') {
+                bdr_json_response(['status' => 'error', 'message' => 'The document number is already in use.'], 409);
+            }
+        }
     }
 }
 
 if ($method === 'PUT' || $method === 'PATCH') {
     if ($documentId <= 0) bdr_json_response(['status' => 'error', 'message' => 'document_id is required.'], 422);
     $number = trim($data['document_number'] ?? '');
+    $current = $pdo->prepare('SELECT document_number FROM document_types WHERE document_id = ?');
+    $current->execute([$documentId]);
+    $currentRow = $current->fetch();
+    if (!$currentRow) bdr_json_response(['status' => 'error', 'message' => 'Document type not found.'], 404);
+    if ($number !== $currentRow['document_number']) bdr_json_response(['status' => 'error', 'message' => 'Document code cannot be changed once created.'], 422);
     $name = trim($data['document_name'] ?? '');
     $path = trim($data['file_path'] ?? '');
     $days = filter_var($data['processing_days'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);

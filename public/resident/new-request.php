@@ -42,6 +42,11 @@ $documentTypes = $pdo->query('SELECT document_id, document_name, fee, processing
 
                 <p id="formHelperText" class="helper-text mb-3">Choose a type of document to continue</p>
 
+                <div id="duplicateWarning" class="alert alert-warning d-none" role="alert">
+                    <span id="duplicateWarningText">You already requested this document today.</span>
+                    <button type="button" id="confirmAnywayBtn" class="btn btn-sm btn-warning ms-2">Submit anyway</button>
+                </div>
+
                 <button type="submit" id="submitRequestBtn" class="btn btn-brand w-100 w-sm-auto" disabled>
                     Submit Request
                 </button>

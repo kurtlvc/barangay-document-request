@@ -14,7 +14,7 @@ $isVerified = ($status === 'verified');
             <div>
                 <h6 class="fw-bold mb-1">
                     <?= $isVerified ? 'Verified Resident Profile' : 'Resident Profile Pending Verification' ?>
-                    <?= $resId ? "(Resident #{$resId})" : '' ?>
+                    <?= $resId ? '(' . htmlspecialchars(bdr_resident_code($resId), ENT_QUOTES, 'UTF-8') . ')' : '' ?>
                 </h6>
                 <small class="mb-0">
                     <?= $isVerified 

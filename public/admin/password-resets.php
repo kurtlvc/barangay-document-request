@@ -7,7 +7,7 @@ require_once __DIR__ . '/../includes/Repositories/PdoPasswordResetRepository.php
 
 use App\Repositories\PdoPasswordResetRepository;
 
-bdr_require_page_role(['admin', 'staff']);
+bdr_require_page_role(['admin']);
 $pageTitle = "Password Reset Requests";
 $pageDescription = "Manage resident offline password reset requests and credentials";
 $role = $_SESSION['role'] ?? 'admin';

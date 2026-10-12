@@ -50,10 +50,11 @@ $residents = $pdo->query("SELECT r.resident_id, r.user_id, CONCAT(r.first_name, 
                     </thead>
                     <tbody id="residentRows">
                         <?php foreach ($residents as $resident):
-                            $search = strtolower(implode(' ', [$resident['name'], $resident['email'], $resident['address']]));
+                            $resCode = bdr_resident_code($resident['resident_id']);
+                            $search = strtolower(implode(' ', [$resident['name'], $resident['email'], $resident['address'], $resCode]));
                         ?>
-                            <tr data-resident-id="<?= (int) $resident['resident_id'] ?>" data-user-id="<?= (int) ($resident['user_id'] ?? 0) ?>" data-search="<?= htmlspecialchars($search) ?>" data-status="<?= strtolower($resident['status']) ?>" data-name="<?= htmlspecialchars($resident['name']) ?>" data-email="<?= htmlspecialchars($resident['email']) ?>" data-contact="<?= htmlspecialchars($resident['contact']) ?>" data-address="<?= htmlspecialchars($resident['address']) ?>" data-registered="<?= htmlspecialchars($resident['registered']) ?>">
-                                <td class="fw-semibold heading-green"><?= htmlspecialchars($resident['name']) ?><br><small class="text-muted-soft fw-normal"><?= htmlspecialchars($resident['email']) ?></small></td>
+                            <tr data-resident-id="<?= (int) $resident['resident_id'] ?>" data-user-id="<?= (int) ($resident['user_id'] ?? 0) ?>" data-search="<?= htmlspecialchars($search) ?>" data-status="<?= strtolower($resident['status']) ?>" data-code="<?= htmlspecialchars($resCode) ?>" data-name="<?= htmlspecialchars($resident['name']) ?>" data-email="<?= htmlspecialchars($resident['email']) ?>" data-contact="<?= htmlspecialchars($resident['contact']) ?>" data-address="<?= htmlspecialchars($resident['address']) ?>" data-registered="<?= htmlspecialchars($resident['registered']) ?>">
+                                <td class="fw-semibold heading-green"><?= htmlspecialchars($resident['name']) ?><br><small class="text-muted-soft fw-normal"><?= htmlspecialchars($resident['email']) ?></small><br><small class="text-muted-soft fw-normal font-monospace"><?= htmlspecialchars($resCode) ?></small></td>
                                 <td class="text-muted-soft text-nowrap"><?= htmlspecialchars($resident['contact']) ?></td>
                                 <td class="text-muted-soft"><?= htmlspecialchars($resident['address']) ?></td>
                                 <td class="text-muted-soft text-nowrap"><?= htmlspecialchars(date('M j, Y', strtotime($resident['registered']))) ?></td>

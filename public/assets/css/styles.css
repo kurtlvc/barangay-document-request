@@ -1939,3 +1939,27 @@ body[data-theme="dark"] .form-tabs { background-color: var(--surface-raised) !im
 body[data-theme="dark"] .form-tabs .nav-link { color: var(--accent-green); }
 body[data-theme="dark"] .form-tabs .nav-link:hover { background-color: rgba(255, 255, 255, 0.06); }
 body[data-theme="dark"] .form-text { color: var(--light-gray); }
+
+/* Print: reports print clean, chrome stays on screen */
+.print-only { display: none; }
+@media print {
+    aside.sidebar,
+    .offcanvas,
+    nav.navbar,
+    footer,
+    .modal,
+    .modal-backdrop,
+    .toast,
+    .toast-container,
+    section[data-no-print],
+    div[data-no-print],
+    button[data-no-print],
+    [data-no-print] { display: none !important; }
+    .print-only { display: block !important; }
+    body { background: #fff; }
+    .app-shell { display: block !important; overflow: visible !important; }
+    .app-content,
+    main { overflow: visible !important; }
+    .panel-white { box-shadow: none !important; border: 1px solid #ddd; break-inside: avoid; }
+    [data-report-chart] svg { max-height: 260px; }
+}

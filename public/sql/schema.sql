@@ -30,7 +30,7 @@ CREATE TABLE residents (
     CONSTRAINT fk_residents_user
         FOREIGN KEY (user_id) REFERENCES users(id)
         ON UPDATE CASCADE ON DELETE SET NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE document_types (
     document_id       INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,7 +41,7 @@ CREATE TABLE document_types (
     fee               DECIMAL(10,2) NOT NULL DEFAULT 0,
     requirements      TEXT NULL,
     is_active         TINYINT(1) NOT NULL DEFAULT 1
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE requests (
     request_id    INT AUTO_INCREMENT PRIMARY KEY,
@@ -65,7 +65,7 @@ CREATE TABLE requests (
     CONSTRAINT fk_requests_user
         FOREIGN KEY (processed_by) REFERENCES users(id)
         ON UPDATE CASCADE ON DELETE SET NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE request_history (
     history_id   INT AUTO_INCREMENT PRIMARY KEY,
@@ -82,7 +82,7 @@ CREATE TABLE request_history (
     CONSTRAINT fk_history_user
         FOREIGN KEY (updated_by) REFERENCES users(id)
         ON UPDATE CASCADE ON DELETE RESTRICT
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE INDEX idx_requests_status        ON requests(status);
 CREATE INDEX idx_requests_resident      ON requests(resident_id);
@@ -133,9 +133,9 @@ CREATE INDEX idx_password_resets_user ON password_resets(user_id);
 
 -- password_hash = password
 INSERT INTO users (name, email, password_hash, role) VALUES
-('admin', 'admin@test.com', '$2a$12$AZe01M15Hb2IYJeKMLVC/.rT5ODqB.eQ5BOioc3V.cYmh0.zA5gwy', 'admin'),
-('staff01', 'staff01@test.com', '$2a$12$AZe01M15Hb2IYJeKMLVC/.rT5ODqB.eQ5BOioc3V.cYmh0.zA5gwy', 'staff'),
-('Juan Dela Cruz', 'resident@test.com', '$2a$12$AZe01M15Hb2IYJeKMLVC/.rT5ODqB.eQ5BOioc3V.cYmh0.zA5gwy', 'resident');
+('admin', 'admin@dokubayan.com', '$2a$12$AZe01M15Hb2IYJeKMLVC/.rT5ODqB.eQ5BOioc3V.cYmh0.zA5gwy', 'admin'),
+('staff01', 'staff01@dokubayan.com', '$2a$12$AZe01M15Hb2IYJeKMLVC/.rT5ODqB.eQ5BOioc3V.cYmh0.zA5gwy', 'staff'),
+('Juan Dela Cruz', 'resident@dokubayan.com', '$2a$12$AZe01M15Hb2IYJeKMLVC/.rT5ODqB.eQ5BOioc3V.cYmh0.zA5gwy', 'resident');
 
 INSERT INTO document_types (document_number, document_name, file_path, processing_days) VALUES
 ('DOC-001', 'Barangay Clearance',        '/templates/barangay_clearance.docx',        1),

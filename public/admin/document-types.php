@@ -47,9 +47,9 @@ $documents = $pdo->query("SELECT document_id, document_number, document_name AS 
                         </tr>
                     </thead>
                     <tbody id="documentRows">
-                        <?php foreach ($documents as $document): $search = strtolower(implode(' ', [$document['name'], $document['requirements'] ?? ''])); $document['status'] = (int) $document['is_active'] ? 'Active' : 'Deactivated'; ?>
+                        <?php foreach ($documents as $document): $search = strtolower(implode(' ', [$document['name'], $document['document_number'], $document['requirements'] ?? ''])); $document['status'] = (int) $document['is_active'] ? 'Active' : 'Deactivated'; ?>
                             <tr data-document-id="<?= (int) $document['document_id'] ?>" data-number="<?= htmlspecialchars($document['document_number']) ?>" data-search="<?= htmlspecialchars($search) ?>" data-status="<?= strtolower($document['status']) ?>" data-name="<?= htmlspecialchars($document['name']) ?>" data-fee="<?= htmlspecialchars($document['fee']) ?>" data-requirements="<?= htmlspecialchars($document['requirements'] ?? '') ?>" data-turnaround="<?= (int) $document['turnaround_days'] ?>">
-                                <td class="fw-semibold heading-green"><?= htmlspecialchars($document['name']) ?></td>
+                                <td class="fw-semibold heading-green"><?= htmlspecialchars($document['name']) ?><br><small class="text-muted-soft fw-normal font-monospace"><?= htmlspecialchars($document['document_number']) ?></small></td>
                                 <td class="text-nowrap">₱<?= number_format((float) $document['fee'], 2) ?></td>
                                 <td class="text-muted-soft"><?= htmlspecialchars($document['requirements'] ?? 'N/A') ?></td>
                                 <td class="text-muted-soft text-nowrap"><?= (int) $document['turnaround_days'] ?> business day<?= (int) $document['turnaround_days'] === 1 ? '' : 's' ?></td>
@@ -81,8 +81,8 @@ $documents = $pdo->query("SELECT document_id, document_number, document_name AS 
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
-                                <label for="documentNumber" class="form-label">Document Code</label>
-                                <input class="form-control" id="documentNumber" name="document_number" required>
+                                <label for="documentNumber" class="form-label">Document Code <span class="badge text-bg-light border fw-normal"><i class="bi bi-lock-fill"></i> Read-only</span></label>
+                                <input class="form-control" id="documentNumber" name="document_number" required readonly>
                             </div>
                             <div class="mb-3">
                                 <label for="documentName" class="form-label">Document Name</label>

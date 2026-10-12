@@ -40,8 +40,8 @@ if ($method === 'POST' && ($_GET['action'] ?? '') === 'request') {
     }
 }
 
-// Admin / Staff protected endpoints
-$adminUser = bdr_require_auth(['admin', 'staff']);
+// Admin protected endpoints
+$adminUser = bdr_require_auth(['admin']);
 
 if ($method === 'GET') {
     $statusParam = $_GET['status'] ?? null;

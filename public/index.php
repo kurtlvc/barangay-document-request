@@ -10,15 +10,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?> — DokuBayan |  Barangay Document Requests</title>
+    <link rel="icon" href="<?= htmlspecialchars($basePath) ?>/assets/img/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= htmlspecialchars($basePath) ?>/assets/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= htmlspecialchars($basePath) ?>/assets/img/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="<?= htmlspecialchars($basePath) ?>/assets/img/apple-touch-icon.png">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap-icons/bootstrap-icons.css">
-    <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/styles.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/styles.css?v=2">
     <script src="<?= htmlspecialchars($basePath) ?>/assets/js/theme-init.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg p-3 fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand fw-semibold" href="<?= htmlspecialchars($basePath) ?>/index.php"> <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan"> DokuBayan</a>
+            <a class="navbar-brand fw-semibold" href="<?= htmlspecialchars($basePath) ?>/index.php"> <img src="<?= htmlspecialchars($basePath) ?>/assets/img/logo.png" alt="DokuBayan"> DokuBayan</a>
             <div class="nav-dropdown d-flex">
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                     <span class="navbar-toggler-icon"></span>
@@ -70,7 +74,7 @@
         
         <section class="about-page row pt-5" id="aboutpage">
             <div class="about-img col-lg-5">
-                <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan Logo" class="img-fluid">
+                <img src="<?= htmlspecialchars($basePath) ?>/assets/img/logo.png" alt="DokuBayan Logo" class="img-fluid">
             </div>
             <div class="col-lg-6 p-4 p-lg-5 align-items-center">
                 <h2 class="fw-bold">ABOUT THE SYSTEM</h2>
@@ -138,7 +142,7 @@
     <footer class="footer footer-expand-lg p-4">
         <div class="row container-fluid align-items-center">
             <section class="footer-img container col-lg-6 mb-4">
-            <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan Logo">
+            <img src="<?= htmlspecialchars($basePath) ?>/assets/img/logo.png" alt="DokuBayan Logo">
             </section>
             <section class="container col-lg-4 mb-4">
                 <h4>VISIT OR CONTACT US</h4>                    

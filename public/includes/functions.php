@@ -128,6 +128,15 @@ function bdr_normalize_answer(string $answer): string
     return mb_strtolower(trim($answer));
 }
 
+function bdr_resident_code(int|string|null $residentId): string
+{
+    $id = (int) $residentId;
+    if ($id <= 0) {
+        return '';
+    }
+    return 'RES-' . str_pad((string) $id, 4, '0', STR_PAD_LEFT);
+}
+
 function bdr_base_path(): string
 {
     static $base = null;

@@ -75,29 +75,41 @@ document.addEventListener('DOMContentLoaded', function () {
     documentSelect.addEventListener('change', function () {
         renderDocumentDetails(this.value);
         updateFormState();
+        document.getElementById('duplicateWarning')?.classList.add('d-none');
     });
 
-    purposeInput.addEventListener('input', updateFormState);
+    purposeInput.addEventListener('input', function () {
+        updateFormState();
+        document.getElementById('duplicateWarning')?.classList.add('d-none');
+    });
 
     // Initial state on page load
     renderDocumentDetails(documentSelect.value);
     updateFormState();
 
     // ---- Submission ----
-    form.addEventListener('submit', async function (e) {
-        e.preventDefault();
-        if (submitBtn.disabled) return;
+    const duplicateWarning = document.getElementById('duplicateWarning');
+    const duplicateWarningText = document.getElementById('duplicateWarningText');
+    const confirmAnywayBtn = document.getElementById('confirmAnywayBtn');
 
+    async function submitRequest(confirmed) {
         submitBtn.disabled = true;
         try {
             const response = await fetch('../api/requests.php', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''},
-                body: new URLSearchParams({document_id: documentSelect.value, purpose: purposeInput.value.trim()})
+                body: new URLSearchParams({document_id: documentSelect.value, purpose: purposeInput.value.trim(), confirmed: confirmed ? '1' : '0'})
             });
             const result = await response.json();
+            if (response.status === 409 && result.code === 'duplicate') {
+                if (duplicateWarningText) duplicateWarningText.textContent = result.message || 'You already requested this document today.';
+                if (duplicateWarning) duplicateWarning.classList.remove('d-none');
+                submitBtn.disabled = false;
+                return;
+            }
             if (!response.ok || result.status !== 'ok') throw new Error(result.message || 'Could not submit the request.');
+            if (duplicateWarning) duplicateWarning.classList.add('d-none');
             showSubmittedToast(documentTypes[documentSelect.value]?.document_name || 'Document');
             setTimeout(() => { window.location.href = form.dataset.redirectUrl || 'my-requests.php'; }, 1500);
         } catch (error) {
@@ -105,7 +117,20 @@ document.addEventListener('DOMContentLoaded', function () {
             helperText.classList.remove('d-none');
             submitBtn.disabled = false;
         }
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (submitBtn.disabled) return;
+        submitRequest(false);
     });
+
+    if (confirmAnywayBtn) {
+        confirmAnywayBtn.addEventListener('click', function () {
+            if (duplicateWarning) duplicateWarning.classList.add('d-none');
+            submitRequest(true);
+        });
+    }
 
     function showSubmittedToast(documentLabel) {
         const toastEl = document.getElementById('requestSubmittedToast');

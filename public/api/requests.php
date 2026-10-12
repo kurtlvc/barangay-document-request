@@ -170,6 +170,13 @@ if ($method === 'POST' && ($data['action'] ?? '') !== 'update-status') {
     $document->execute([$documentId]);
     $documentRow = $document->fetch();
     if (!$documentRow) bdr_json_response(['status' => 'error', 'message' => 'Document type not found.'], 404);
+    $confirmed = ($data['confirmed'] ?? '') === '1' || ($data['confirmed'] ?? '') === true;
+    if (!$confirmed) {
+        $dup = $pdo->prepare("SELECT request_id, request_date, status FROM requests WHERE resident_id = ? AND document_id = ? AND DATE(request_date) = CURDATE() AND status NOT IN ('Cancelled', 'Rejected') LIMIT 1");
+        $dup->execute([$user['resident_id'], $documentId]);
+        $existing = $dup->fetch();
+        if ($existing) bdr_json_response(['status' => 'warning', 'code' => 'duplicate', 'message' => 'You already requested this document today. Submit again only if needed.', 'duplicate' => $existing], 409);
+    }
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare('INSERT INTO requests (resident_id, document_id, status, remarks, purpose, amount_due) VALUES (?, ?, "Pending", ?, ?, ?)');

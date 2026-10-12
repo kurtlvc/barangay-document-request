@@ -52,7 +52,10 @@ reset($points);
 
 <?php include __DIR__ . '/../page-layout/header.php' ?>
     <main class="flex-grow-1 overflow-auto p-3 p-lg-4">
-
+        <div class="print-only mb-3">
+            <h4 class="fw-bold mb-1">Staff Service Report</h4>
+            <p class="text-muted-soft mb-0"><?= htmlspecialchars($firstLabel) ?> to <?= htmlspecialchars($lastLabel) ?> · Generated <?= date('M j, Y h:i A') ?></p>
+        </div>
         <div class="stats-panel mb-4">
             <div class="row g-0">
                 <div class="col-12 col-lg-4">
@@ -126,7 +129,10 @@ reset($points);
         </section>
 
         <section class="panel-white p-4">
-            <h5 class="fw-bold mb-3">Requests by Document Type &middot; <?= htmlspecialchars($lastLabel) ?></h5>
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-3 flex-wrap">
+                <h5 class="fw-bold mb-0">Requests by Document Type &middot; <?= htmlspecialchars($lastLabel) ?></h5>
+                <button type="button" class="btn btn-sm btn-outline-brand" id="staffPrintBtn" data-no-print><i class="bi bi-printer me-1"></i>Print</button>
+            </div>
             <div class="table-responsive">
                 <table class="table table-brand align-middle mb-0">
                     <thead>
@@ -149,5 +155,6 @@ reset($points);
             </div>
         </section>
 
+        <script>document.getElementById('staffPrintBtn')?.addEventListener('click', () => window.print());</script>
     </main>
 <?php include __DIR__ . '/../page-layout/footer.php' ?>

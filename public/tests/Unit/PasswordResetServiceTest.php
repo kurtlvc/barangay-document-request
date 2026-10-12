@@ -89,7 +89,7 @@ final class PasswordResetServiceTest
         };
 
         $service = new PasswordResetService($mockRepo);
-        $result = $service->submitResetRequest(new SubmitPasswordResetRequestDTO('resident@test.com', 'Forgot answer'));
+        $result = $service->submitResetRequest(new SubmitPasswordResetRequestDTO('resident@dokubayan.com', 'Forgot answer'));
 
         self::assert($result['status'] === 'ok' && $result['request_id'] === 42, 'testSubmitResetWithExistingUser queues request');
     }
@@ -99,7 +99,7 @@ final class PasswordResetServiceTest
         $mockRepo = new class implements PasswordResetRepositoryInterface {
             public ?string $lastSavedHash = null;
             public function findUserById(int $userId): ?array {
-                return ['id' => 5, 'name' => 'Maria Santos', 'email' => 'maria@test.com'];
+                return ['id' => 5, 'name' => 'Maria Santos', 'email' => 'maria@dokubayan.com'];
             }
             public function findUserByEmail(string $email): ?array { return null; }
             public function updateUserPassword(int $userId, string $passwordHash): bool {

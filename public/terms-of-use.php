@@ -8,15 +8,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?> — DokuBayan | Barangay Document Requests</title>
+    <link rel="icon" href="<?= htmlspecialchars($basePath) ?>/assets/img/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= htmlspecialchars($basePath) ?>/assets/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= htmlspecialchars($basePath) ?>/assets/img/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="<?= htmlspecialchars($basePath) ?>/assets/img/apple-touch-icon.png">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/bootstrap-icons/bootstrap-icons.css">
-    <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/styles.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars($basePath) ?>/assets/css/styles.css?v=2">
     <script src="<?= htmlspecialchars($basePath) ?>/assets/js/theme-init.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg p-3 fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand fw-semibold" href="<?= htmlspecialchars($basePath) ?>/index.php"> <img src="<?= htmlspecialchars($basePath) ?>/logo.png" alt="DokuBayan"> DokuBayan</a>
+            <a class="navbar-brand fw-semibold" href="<?= htmlspecialchars($basePath) ?>/index.php"> <img src="<?= htmlspecialchars($basePath) ?>/assets/img/logo.png" alt="DokuBayan"> DokuBayan</a>
             <button type="button" class="btn ms-auto" id="themeToggle" aria-label="Toggle theme" title="Toggle theme"><i class="bi bi-moon-fill"></i></button>
         </div>
     </nav>
